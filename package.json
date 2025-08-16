@@ -11,6 +11,7 @@
 		"vercel-build": "echo 'Vercel build completed'"
 	},
 	"dependencies": {
+		"@whop/api": "^0.0.42",
 		"express": "^5.1.0",
 		"react": "19.1.0",
 		"react-native": "0.80.0"
