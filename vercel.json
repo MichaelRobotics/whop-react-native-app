@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "preview-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/api/preview-info",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/experiences/(.*)",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/webhook/whop",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/webhook/status",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/webhook-test",
+      "dest": "/preview-server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/preview-server.js"
+    }
+  ]
+}

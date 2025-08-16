@@ -6,7 +6,9 @@
 		"upload": "whop-react-native upload",
 		"clean": "whop-react-native clean",
 		"ship": "whop-react-native ship",
-		"dev": "whop-react-native build && echo '✅ App built successfully! To test locally, you need to install it into your Whop app and use the Whop mobile app.'"
+		"dev": "whop-react-native build && echo '✅ App built successfully! To test locally, you need to install it into your Whop app and use the Whop mobile app.'",
+		"start": "node preview-server.js",
+		"vercel-build": "echo 'Vercel build completed'"
 	},
 	"dependencies": {
 		"@whop/react-native": "0.0.11",
