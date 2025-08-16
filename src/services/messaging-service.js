@@ -1,9 +1,10 @@
-import { WhopSDK } from '@whop/sdk';
+import { WhopServerSdk } from '@whop/api';
 
 // Initialize Whop SDK with your app credentials
 // Using the environment variables that are already configured
-const whopSdk = new WhopSDK({
-    apiKey: process.env.WHOP_API_KEY,
+const whopSdk = WhopServerSdk({
+    appApiKey: process.env.WHOP_API_KEY,
+    appId: process.env.NEXT_PUBLIC_WHOP_APP_ID,
 });
 
 /**
@@ -37,27 +38,6 @@ Welcome aboard! 🚀`;
         return true;
     } catch (error) {
         console.error('Error sending welcome message:', error);
-        return false;
-    }
-}
-
-/**
- * Send a custom message to a user
- * @param {string} userId - The user's ID
- * @param {string} message - The message to send
- * @returns {Promise<boolean>} - Success status
- */
-export async function sendCustomMessage(userId, message) {
-    try {
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: message
-        });
-
-        console.log('Custom message sent successfully to:', userId);
-        return true;
-    } catch (error) {
-        console.error('Error sending custom message:', error);
         return false;
     }
 }
@@ -99,6 +79,5 @@ Enjoy your membership! 🎉`;
 
 export default {
     sendWelcomeMessage,
-    sendCustomMessage,
     sendPaymentConfirmation
 };
