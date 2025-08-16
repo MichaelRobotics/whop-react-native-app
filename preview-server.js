@@ -10,16 +10,16 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-// Serverless-compatible setup (no file system operations)
+// Webhook secret for authentication
+const WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'ws_ca76a75da35c7f8271455638e8fea03b8acd42ef00ceab9b4fc037f3bb284fa7';
 
-// Webhook secret (you should set this in your environment variables)
-const WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'your_webhook_secret_here';
-
-// Store for tracking greeted users (in production, use a database)
-const greetedUsers = new Set();
-
-// Webhook signature verification
+// Function to verify webhook signature
 function verifyWebhookSignature(payload, signature) {
+    if (!WEBHOOK_SECRET) {
+        console.warn('No webhook secret configured, skipping signature verification');
+        return true;
+    }
+    
     const expectedSignature = crypto
         .createHmac('sha256', WEBHOOK_SECRET)
         .update(payload, 'utf8')
@@ -31,35 +31,125 @@ function verifyWebhookSignature(payload, signature) {
     );
 }
 
-// Send greeting message to user
-async function sendGreetingMessage(userId, userName) {
+// Import the messaging service
+const { sendWelcomeMessage, sendPaymentConfirmation } = require('./src/services/messaging-service.js');
+
+// Webhook endpoint for Whop events
+app.post('/webhook', async (req, res) => {
     try {
-        // In a real implementation, you would use the Whop API to send messages
-        // For now, we'll simulate the API call
-        const greetingData = {
-            user_id: userId,
-            message: `👋 Welcome to our community, ${userName || 'friend'}! We're excited to have you here! 🎉`,
-            type: 'text',
-            timestamp: new Date().toISOString()
-        };
+        const payload = JSON.stringify(req.body);
+        const signature = req.headers['x-whop-signature'] || req.headers['x-webhook-signature'];
         
-        console.log('📨 Sending greeting message:', greetingData);
+        // Verify webhook signature
+        if (!verifyWebhookSignature(payload, signature)) {
+            console.error('Invalid webhook signature');
+            return res.status(401).json({ error: 'Invalid signature' });
+        }
         
-        // Simulate API call to Whop messaging API
-        // In production, you would make an actual HTTP request to Whop's API
-        // const response = await fetch('https://api.whop.com/v2/messages', {
-        //     method: 'POST',
-        //     headers: {
-        //         'Authorization': `Bearer ${process.env.WHOP_APP_SECRET}`,
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(greetingData)
-        // });
+        console.log('Webhook received:', JSON.stringify(req.body, null, 2));
         
-        return { success: true, data: greetingData };
+        const { event, data } = req.body;
+        
+        // Handle different webhook events based on actual available events
+        switch (event) {
+            case 'app_payment_succeeded':
+            case 'payment_succeeded':
+                await handlePaymentSucceeded(data);
+                break;
+            case 'membership_went_valid':
+            case 'app_membership_went_valid':
+                await handleMembershipValid(data);
+                break;
+            case 'membership_experience_claimed':
+                await handleMembershipClaimed(data);
+                break;
+            default:
+                console.log(`Unhandled event type: ${event}`);
+        }
+        
+        res.status(200).json({ success: true });
     } catch (error) {
-        console.error('❌ Error sending greeting message:', error);
-        return { success: false, error: error.message };
+        console.error('Webhook error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Handle payment succeeded events
+async function handlePaymentSucceeded(data) {
+    try {
+        const userId = data.user?.id || data.userId;
+        const username = data.user?.username || data.username || 'New Member';
+        const amount = data.amount || data.payment?.amount;
+        
+        if (!userId) {
+            console.error('No user ID found in payment data:', data);
+            return;
+        }
+        
+        console.log(`Processing payment confirmation for user: ${userId} (${username})`);
+        
+        // Send payment confirmation message
+        const success = await sendPaymentConfirmation(userId, username, { amount });
+        
+        if (success) {
+            console.log(`✅ Payment confirmation sent successfully to ${username}`);
+        } else {
+            console.error(`❌ Failed to send payment confirmation to ${username}`);
+        }
+    } catch (error) {
+        console.error('Error handling payment succeeded event:', error);
+    }
+}
+
+// Handle membership became valid events
+async function handleMembershipValid(data) {
+    try {
+        const userId = data.user?.id || data.userId;
+        const username = data.user?.username || data.username || 'New Member';
+        
+        if (!userId) {
+            console.error('No user ID found in membership data:', data);
+            return;
+        }
+        
+        console.log(`Processing welcome message for valid membership: ${userId} (${username})`);
+        
+        // Send welcome message
+        const success = await sendWelcomeMessage(userId, username);
+        
+        if (success) {
+            console.log(`✅ Welcome message sent successfully to ${username}`);
+        } else {
+            console.error(`❌ Failed to send welcome message to ${username}`);
+        }
+    } catch (error) {
+        console.error('Error handling membership valid event:', error);
+    }
+}
+
+// Handle membership experience claimed events
+async function handleMembershipClaimed(data) {
+    try {
+        const userId = data.user?.id || data.userId;
+        const username = data.user?.username || data.username || 'New Member';
+        
+        if (!userId) {
+            console.error('No user ID found in membership claim data:', data);
+            return;
+        }
+        
+        console.log(`Processing welcome message for claimed membership: ${userId} (${username})`);
+        
+        // Send welcome message
+        const success = await sendWelcomeMessage(userId, username);
+        
+        if (success) {
+            console.log(`✅ Welcome message sent successfully to ${username}`);
+        } else {
+            console.error(`❌ Failed to send welcome message to ${username}`);
+        }
+    } catch (error) {
+        console.error('Error handling membership claimed event:', error);
     }
 }
 
@@ -259,344 +349,7 @@ const htmlContent = `
 
 // Serverless-compatible: serve HTML directly instead of writing to filesystem
 
-// Webhook test page HTML
-const webhookTestHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whop Webhook Testing</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f5;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #e9ecef;
-            border-radius: 10px;
-            background: #f8f9fa;
-        }
-        
-        .section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-        }
-        
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        
-        .button {
-            background: #007AFF;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .button:hover {
-            background: #0056b3;
-        }
-        
-        .button.secondary {
-            background: #6c757d;
-        }
-        
-        .button.secondary:hover {
-            background: #545b62;
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .log {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        
-        .webhook-url {
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 12px;
-            word-break: break-all;
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔔 Whop Webhook Testing</h1>
-            <p>Test your webhook functionality and greeting messages</p>
-        </div>
-        
-        <div class="content">
-            <div class="section">
-                <h3>📡 Webhook Configuration</h3>
-                <div class="webhook-url">
-                    <strong>Webhook URL:</strong> https://whop-react-native-j4asbljgr-michaelrobotics-projects.vercel.app/webhook/whop
-                </div>
-                <p>Configure this URL in your Whop developer dashboard to receive real webhook events.</p>
-                <button class="button secondary" onclick="checkWebhookStatus()">Check Webhook Status</button>
-            </div>
-            
-            <div class="section">
-                <h3>🧪 Test Webhook Events</h3>
-                <div class="form-group">
-                    <label for="eventType">Event Type:</label>
-                    <select id="eventType" onchange="updateEventData()">
-                        <option value="user.joined_community">User Joined Community</option>
-                        <option value="user.sent_message">User Sent Message</option>
-                        <option value="user.entered_experience">User Entered Experience</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="userId">User ID:</label>
-                    <input type="text" id="userId" value="user_123" placeholder="Enter user ID">
-                </div>
-                
-                <div class="form-group">
-                    <label for="userName">Username:</label>
-                    <input type="text" id="userName" value="testuser" placeholder="Enter username">
-                </div>
-                
-                <div class="form-group" id="messageGroup" style="display: none;">
-                    <label for="message">Message:</label>
-                    <textarea id="message" placeholder="Enter message content"></textarea>
-                </div>
-                
-                <div class="form-group" id="experienceGroup" style="display: none;">
-                    <label for="experienceId">Experience ID:</label>
-                    <input type="text" id="experienceId" value="exp_My7RRAeZmG3KaU" placeholder="Enter experience ID">
-                </div>
-                
-                <button class="button" onclick="sendTestWebhook()">Send Test Webhook</button>
-                <button class="button secondary" onclick="clearLog()">Clear Log</button>
-            </div>
-            
-            <div class="section">
-                <h3>📊 Webhook Status</h3>
-                <div id="statusDisplay"></div>
-            </div>
-            
-            <div class="section">
-                <h3>📝 Event Log</h3>
-                <div id="eventLog" class="log"></div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        let logEntries = [];
-        
-        function log(message, type = 'info') {
-            const timestamp = new Date().toISOString();
-            const logEntry = \`[\${timestamp}] \${message}\`;
-            logEntries.push(logEntry);
-            
-            const logElement = document.getElementById('eventLog');
-            logElement.textContent = logEntries.join('\\n');
-            logElement.scrollTop = logElement.scrollHeight;
-            
-            console.log(logEntry);
-        }
-        
-        function updateEventData() {
-            const eventType = document.getElementById('eventType').value;
-            const messageGroup = document.getElementById('messageGroup');
-            const experienceGroup = document.getElementById('experienceGroup');
-            
-            messageGroup.style.display = eventType === 'user.sent_message' ? 'block' : 'none';
-            experienceGroup.style.display = eventType === 'user.entered_experience' ? 'block' : 'none';
-        }
-        
-        async function sendTestWebhook() {
-            const eventType = document.getElementById('eventType').value;
-            const userId = document.getElementById('userId').value;
-            const userName = document.getElementById('userName').value;
-            const message = document.getElementById('message').value;
-            const experienceId = document.getElementById('experienceId').value;
-            
-            const eventData = {
-                type: eventType,
-                timestamp: new Date().toISOString(),
-                data: {
-                    user: {
-                        id: userId,
-                        username: userName,
-                        name: userName
-                    }
-                }
-            };
-            
-            if (eventType === 'user.sent_message') {
-                eventData.data.message = message;
-            } else if (eventType === 'user.entered_experience') {
-                eventData.data.experience = {
-                    id: experienceId
-                };
-            }
-            
-            log(\`Sending test webhook: \${eventType}\`, 'info');
-            
-            try {
-                const response = await fetch('/webhook/whop', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(eventData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    log(\`✅ Webhook sent successfully: \${eventType}\`, 'success');
-                    log(\`Response: \${JSON.stringify(result, null, 2)}\`, 'info');
-                } else {
-                    log(\`❌ Webhook failed: \${result.error}\`, 'error');
-                }
-            } catch (error) {
-                log(\`❌ Error sending webhook: \${error.message}\`, 'error');
-            }
-        }
-        
-        async function checkWebhookStatus() {
-            try {
-                const response = await fetch('/webhook/status');
-                const status = await response.json();
-                
-                const statusDisplay = document.getElementById('statusDisplay');
-                statusDisplay.innerHTML = \`
-                    <div class="status success">
-                        ✅ Webhook Status: \${status.status}
-                    </div>
-                    <p><strong>Total Greeted Users:</strong> \${status.totalGreeted}</p>
-                    <p><strong>Greeted User IDs:</strong> \${status.greetedUsers.join(', ') || 'None'}</p>
-                    <p><strong>Last Updated:</strong> \${status.timestamp}</p>
-                \`;
-                
-                log(\`📊 Webhook status checked: \${status.totalGreeted} users greeted\`, 'info');
-            } catch (error) {
-                log(\`❌ Error checking status: \${error.message}\`, 'error');
-            }
-        }
-        
-        function clearLog() {
-            logEntries = [];
-            document.getElementById('eventLog').textContent = '';
-        }
-        
-        // Initialize
-        updateEventData();
-        checkWebhookStatus();
-        log('🚀 Webhook testing interface loaded', 'info');
-    </script>
-</body>
-</html>
-`;
+
 
 // Routes - Serverless-compatible (serve HTML directly)
 app.get('/', (req, res) => {
@@ -616,10 +369,7 @@ app.get('/', (req, res) => {
     res.send(htmlContent);
 });
 
-app.get('/webhook-test', (req, res) => {
-    // Serve webhook test page directly
-    res.send(webhookTestHtml);
-});
+
 
 app.get('/api/preview-info', (req, res) => {
     res.json({
@@ -820,100 +570,7 @@ app.get('/experiences/:experienceId', (req, res) => {
     res.send(experienceHtml);
 });
 
-// Webhook endpoint for handling Whop events
-app.post('/webhook/whop', async (req, res) => {
-    try {
-        const signature = req.headers['whop-signature'];
-        const payload = JSON.stringify(req.body);
-        
-        // Verify webhook signature for security
-        if (!verifyWebhookSignature(payload, signature)) {
-            console.log('❌ Invalid webhook signature');
-            return res.status(401).json({ error: 'Invalid signature' });
-        }
-        
-        const event = req.body;
-        console.log('📥 Received webhook event:', event.type);
-        
-        // Handle different event types
-        switch (event.type) {
-            case 'user.joined_community':
-                await handleUserJoinedCommunity(event);
-                break;
-            case 'user.sent_message':
-                await handleUserMessage(event);
-                break;
-            case 'user.entered_experience':
-                await handleUserEnteredExperience(event);
-                break;
-            default:
-                console.log('📋 Unhandled event type:', event.type);
-        }
-        
-        res.status(200).json({ success: true, message: 'Webhook processed' });
-    } catch (error) {
-        console.error('❌ Webhook error:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
-// Handle user joining community
-async function handleUserJoinedCommunity(event) {
-    const userId = event.data.user.id;
-    const userName = event.data.user.username || event.data.user.name;
-    
-    console.log(`🎉 User ${userName} (${userId}) joined the community!`);
-    
-    // Check if we've already greeted this user
-    if (greetedUsers.has(userId)) {
-        console.log(`👋 User ${userId} already greeted, skipping...`);
-        return;
-    }
-    
-    // Send greeting message
-    const result = await sendGreetingMessage(userId, userName);
-    
-    if (result.success) {
-        greetedUsers.add(userId);
-        console.log(`✅ Greeting sent to ${userName} (${userId})`);
-    } else {
-        console.log(`❌ Failed to send greeting to ${userName} (${userId}):`, result.error);
-    }
-}
-
-// Handle user messages
-async function handleUserMessage(event) {
-    const userId = event.data.user.id;
-    const userName = event.data.user.username || event.data.user.name;
-    const message = event.data.message;
-    
-    console.log(`💬 Message from ${userName} (${userId}): ${message}`);
-    
-    // You can add custom message handling logic here
-    // For example, auto-replies, moderation, etc.
-}
-
-// Handle user entering experience
-async function handleUserEnteredExperience(event) {
-    const userId = event.data.user.id;
-    const userName = event.data.user.username || event.data.user.name;
-    const experienceId = event.data.experience.id;
-    
-    console.log(`🎯 User ${userName} (${userId}) entered experience ${experienceId}`);
-    
-    // You can add custom experience entry logic here
-    // For example, tracking analytics, sending welcome messages, etc.
-}
-
-// Webhook status endpoint
-app.get('/webhook/status', (req, res) => {
-    res.json({
-        status: 'active',
-        greetedUsers: Array.from(greetedUsers),
-        totalGreeted: greetedUsers.size,
-        timestamp: new Date().toISOString()
-    });
-});
 
 // Start server
 app.listen(PORT, () => {
@@ -928,15 +585,8 @@ app.listen(PORT, () => {
    - http://localhost:${PORT} - App preview
    - http://localhost:${PORT}/api/preview-info - Server info
    - http://localhost:${PORT}/experiences/:id - Experience preview
-   - http://localhost:${PORT}/webhook/whop - Webhook endpoint
-   - http://localhost:${PORT}/webhook/status - Webhook status
 
 💡 This is a web preview of your React Native app.
    To test the actual mobile app, deploy it to Whop first!
-
-🔔 Webhook Features:
-   - Auto-greeting when users join community
-   - Message handling and logging
-   - Experience entry tracking
     `);
 });

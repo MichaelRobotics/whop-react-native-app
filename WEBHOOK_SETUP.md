@@ -1,93 +1,131 @@
-# 🔐 Webhook Secret Setup Guide
+# Webhook Setup Guide for Automatic Welcome Messages
 
-## Where to Get Your Webhook Secret
+This guide explains how to set up automatic welcome messages when users purchase your whop.
 
-### 1. **Whop Developer Dashboard**
-1. Go to [Whop Developer Dashboard](https://whop.com/dashboard/developer)
-2. Find your app: `app_FInBMCJGyVdD9T`
-3. Look for **"Webhook Settings"** or **"API Configuration"**
-4. You should see a **"Webhook Secret"** or **"Signing Secret"** field
+## Prerequisites
 
-### 2. **If No Secret is Shown**
-If you don't see a webhook secret in your dashboard:
-- **Generate your own secret**: Use a secure random string
-- **Recommended format**: 32+ character random string
-- **Example**: `whop_webhook_secret_abc123xyz789def456`
+1. **Whop Developer Account**: You need a Whop developer account with an app created
+2. **Server with HTTPS**: Your webhook endpoint must be accessible via HTTPS
+3. **Environment Variables**: Configure the required environment variables
 
-### 3. **Generate a Secure Secret**
-You can generate a secure webhook secret using:
+## Step 1: Configure Environment Variables
+
+Copy the `env.example` file to `.env` and fill in your credentials:
+
 ```bash
-# Generate a random 32-character secret
-openssl rand -hex 32
-
-# Or use Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+cp env.example .env
 ```
 
-## 🔧 Setting Up Webhook Secret
+Update the `.env` file with your actual Whop credentials:
 
-### Option 1: Add to Vercel Environment Variables
-```bash
-# Add webhook secret to Vercel
-vercel env add WHOP_WEBHOOK_SECRET
-# Enter your secret when prompted
-```
-
-### Option 2: Add to Local Environment
-Add to your `.env.local` file:
 ```env
-WHOP_WEBHOOK_SECRET=your_webhook_secret_here
+# Whop App Configuration
+WHOP_API_KEY=your_whop_api_key_here
+NEXT_PUBLIC_WHOP_APP_ID=your_whop_app_id_here
+NEXT_PUBLIC_WHOP_AGENT_USER_ID=your_agent_user_id_here
+NEXT_PUBLIC_WHOP_COMPANY_ID=your_company_id_here
+
+# Webhook Configuration
+WHOP_WEBHOOK_SECRET=ws_ca76a75da35c7f8271455638e8fea03b8acd42ef00ceab9b4fc037f3bb284fa7
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
 ```
 
-### Option 3: Use Default Secret
-If you don't have a specific secret, you can use a default one:
+## Step 2: Deploy Your Server
+
+Deploy your server to a platform that supports HTTPS (required for webhooks):
+
+### Option A: Vercel (Recommended)
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set environment variables in Vercel dashboard
+4. Deploy
+
+### Option B: Heroku
+1. Create a Heroku app
+2. Set environment variables: `heroku config:set WHOP_APP_ID=your_app_id`
+3. Deploy: `git push heroku main`
+
+### Option C: Railway
+1. Connect your GitHub repository
+2. Set environment variables in Railway dashboard
+3. Deploy automatically
+
+## Step 3: Set Up Webhook in Whop Dashboard
+
+1. **Go to Whop Developer Dashboard**: https://whop.com/dashboard/developer
+2. **Select Your App**: Choose the app you want to configure webhooks for
+3. **Navigate to Webhooks**: Find the webhooks section in your app settings
+4. **Create Webhook**:
+   - **Webhook URL**: `https://your-domain.com/webhook`
+   - **Events**: Select the events you want to listen for:
+     - `app_payment_succeeded` or `payment_succeeded` (when payment is successful)
+     - `membership_went_valid` or `app_membership_went_valid` (when membership becomes valid)
+     - `membership_experience_claimed` (when user claims membership experience)
+5. **Save Configuration**: The webhook will be created with a unique URL that includes authentication
+
+## Step 4: Test Your Webhook
+
+1. **Start your server locally** (for testing):
+   ```bash
+   npm start
+   ```
+
+2. **Use ngrok for local testing**:
+   ```bash
+   npx ngrok http 3000
+   ```
+
+3. **Update webhook URL** in Whop dashboard with the ngrok URL
+
+4. **Test the webhook** by triggering the events in your whop
+
+## Step 5: Monitor Webhook Events
+
+Your server will log webhook events. Check the console for:
+- Webhook received events
+- User join events
+- Welcome message sending status
+
+## Troubleshooting
+
+### Common Issues:
+
+1. **Webhook not receiving events**:
+   - Check if your server is accessible via HTTPS
+   - Verify the webhook URL is correct
+   - Check server logs for errors
+
+2. **Welcome messages not sending**:
+   - Verify `WHOP_API_KEY` is correct
+   - Check if the user ID is valid
+   - Review error logs
+
+3. **Authentication errors**:
+   - Ensure your app credentials are correct
+   - Check if your app has messaging permissions
+
+### Debug Mode:
+
+Enable debug logging by setting:
 ```env
-WHOP_WEBHOOK_SECRET=whop_webhook_secret_default_2024
+NODE_ENV=development
 ```
 
-## 📡 Configure Webhook URL in Whop Dashboard
+## Security Notes
 
-### 1. **Go to Developer Dashboard**
-- Visit: https://whop.com/dashboard/developer
-- Find your app: `app_FInBMCJGyVdD9T`
+- Webhook URLs include authentication tokens - keep them secure
+- Never log sensitive user data
+- Use HTTPS for all webhook endpoints
+- Validate webhook data before processing
 
-### 2. **Set Webhook URL**
-- Look for **"Webhook URL"** or **"Webhook Endpoint"**
-- Set it to: `https://whop-react-native-j4asbljgr-michaelrobotics-projects.vercel.app/webhook/whop`
+## Next Steps
 
-### 3. **Set Webhook Secret** (if available)
-- Enter the same secret you used in your environment variables
-- This ensures webhook signature verification
+After setting up webhooks, you can:
 
-## 🧪 Testing Your Webhook
-
-### Local Testing (Working ✅)
-- **URL**: http://localhost:3000/webhook-test
-- **Status**: ✅ Working
-- **Features**: Test all webhook events locally
-
-### Production Testing
-- **URL**: https://whop-react-native-j4asbljgr-michaelrobotics-projects.vercel.app/webhook-test
-- **Status**: Ready for real events
-- **Features**: Handle real Whop webhook events
-
-## 🔍 Webhook Event Types
-
-Your webhook handles these events:
-- `user.joined_community` - Triggers greeting message
-- `user.sent_message` - Logs user messages  
-- `user.entered_experience` - Tracks experience usage
-
-## 🚀 Next Steps
-
-1. **Get webhook secret** from Whop dashboard
-2. **Add secret to Vercel**: `vercel env add WHOP_WEBHOOK_SECRET`
-3. **Configure webhook URL** in Whop dashboard
-4. **Test with real users** by sharing your Whop link
-5. **Monitor webhook events** in Vercel logs
-
-## 📞 Support
-
-- **Whop Documentation**: https://dev.whop.com
-- **Developer Discord**: https://discord.gg/xrgfRnVHgV
-- **Vercel Dashboard**: https://vercel.com/dashboard
+1. **Customize welcome messages** in `src/services/messaging-service.js`
+2. **Add more event handlers** in `preview-server.js`
+3. **Implement retry logic** for failed message sends
+4. **Add analytics** to track welcome message effectiveness

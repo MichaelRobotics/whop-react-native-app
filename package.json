@@ -12,6 +12,7 @@
 	},
 	"dependencies": {
 		"@whop/react-native": "0.0.11",
+		"@whop/sdk": "^1.0.0",
 		"express": "^5.1.0",
 		"react": "19.0.0",
 		"react-native": "0.80.0"
