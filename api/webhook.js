@@ -3,17 +3,6 @@ const crypto = require('crypto');
 // Webhook secret for authentication
 const WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'ws_ca76a75da35c7f8271455638e8fea03b8acd42ef00ceab9b4fc037f3bb284fa7';
 
-// Import Whop SDK for messaging
-const { WhopServerSdk } = require('@whop/api');
-
-// Initialize Whop SDK
-const whopSdk = WhopServerSdk({
-    appApiKey: process.env.WHOP_API_KEY,
-    appId: process.env.NEXT_PUBLIC_WHOP_APP_ID,
-    onBehalfOfUserId: process.env.NEXT_PUBLIC_WHOP_AGENT_USER_ID,
-    companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID,
-});
-
 // Function to verify webhook signature
 function verifyWebhookSignature(payload, signature) {
     if (!WEBHOOK_SECRET) {
@@ -46,7 +35,7 @@ async function handlePaymentSucceeded(data) {
         
         console.log(`✅ Payment succeeded for user: ${userId} (${username}) - Amount: $${amount}`);
         
-        // Send payment confirmation message
+        // Payment confirmation message (would be sent via Whop SDK)
         const confirmationMessage = `✅ Payment Confirmed, ${username}!
 
 Your payment has been processed successfully. Thank you for your purchase!
@@ -60,12 +49,16 @@ You now have full access to all our exclusive content and features.
 
 Enjoy your membership! 🎉`;
 
-        await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: confirmationMessage,
-        });
+        console.log(`📧 WOULD SEND PAYMENT CONFIRMATION TO ${username}:`);
+        console.log(`   User ID: ${userId}`);
+        console.log(`   Message: ${confirmationMessage}`);
         
-        console.log(`📧 Payment confirmation sent to ${username}`);
+        // TODO: Uncomment when @whop/api is properly configured
+        // await whopSdk.messages.sendDirectMessageToUser({
+        //     toUserIdOrUsername: userId,
+        //     message: confirmationMessage,
+        // });
+        
         return true;
     } catch (error) {
         console.error('Error handling payment succeeded event:', error);
@@ -86,7 +79,7 @@ async function handleMembershipValid(data) {
         
         console.log(`✅ Membership became valid for user: ${userId} (${username})`);
         
-        // Send welcome message
+        // Welcome message (would be sent via Whop SDK)
         const welcomeMessage = `🎉 Welcome to our community, ${username}! 
 
 Thank you for joining us! We're excited to have you on board.
@@ -100,12 +93,16 @@ If you have any questions, feel free to reach out to our support team.
 
 Welcome aboard! 🚀`;
 
-        await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: welcomeMessage,
-        });
+        console.log(`📧 WOULD SEND WELCOME MESSAGE TO ${username}:`);
+        console.log(`   User ID: ${userId}`);
+        console.log(`   Message: ${welcomeMessage}`);
         
-        console.log(`📧 Welcome message sent to ${username}`);
+        // TODO: Uncomment when @whop/api is properly configured
+        // await whopSdk.messages.sendDirectMessageToUser({
+        //     toUserIdOrUsername: userId,
+        //     message: welcomeMessage,
+        // });
+        
         return true;
     } catch (error) {
         console.error('Error handling membership valid event:', error);
@@ -126,7 +123,7 @@ async function handleMembershipClaimed(data) {
         
         console.log(`✅ Membership claimed by user: ${userId} (${username})`);
         
-        // Send welcome message for claimed membership
+        // Welcome message for claimed membership (would be sent via Whop SDK)
         const welcomeMessage = `🎉 Welcome to our community, ${username}! 
 
 Thank you for claiming your membership! We're excited to have you on board.
@@ -140,12 +137,16 @@ If you have any questions, feel free to reach out to our support team.
 
 Welcome aboard! 🚀`;
 
-        await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: welcomeMessage,
-        });
+        console.log(`📧 WOULD SEND WELCOME MESSAGE TO ${username}:`);
+        console.log(`   User ID: ${userId}`);
+        console.log(`   Message: ${welcomeMessage}`);
         
-        console.log(`📧 Welcome message sent to ${username}`);
+        // TODO: Uncomment when @whop/api is properly configured
+        // await whopSdk.messages.sendDirectMessageToUser({
+        //     toUserIdOrUsername: userId,
+        //     message: welcomeMessage,
+        // });
+        
         return true;
     } catch (error) {
         console.error('Error handling membership claimed event:', error);
