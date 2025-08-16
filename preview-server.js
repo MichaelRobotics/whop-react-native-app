@@ -150,86 +150,77 @@ const htmlContent = `
             text-align: right;
         }
 
-        .button-container {
-            position: absolute;
-            bottom: 80px;
-            left: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .button-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .button-title {
-            font-size: 20px;
-            font-weight: bold;
+        .welcome-buttons-container {
+            margin-top: 15px;
             text-align: center;
-            margin: 0 0 5px 0;
-            color: #1a1a1a;
         }
 
-        .button-subtitle {
-            font-size: 14px;
-            text-align: center;
-            margin: 0 0 20px 0;
-            color: #666;
-            line-height: 20px;
+        .welcome-button {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .buttons-list {
+        .welcome-button:hover {
+            background-color: #5a6fd8;
+        }
+
+        .choice-buttons-container {
+            margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
-        .interactive-button {
+        .choice-button {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 12px;
             border-radius: 12px;
             border: none;
             cursor: pointer;
             transition: transform 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .interactive-button:hover {
-            transform: translateY(-2px);
+        .choice-button:hover {
+            transform: translateY(-1px);
         }
 
-        .interactive-button:active {
+        .choice-button:active {
             transform: scale(0.98);
         }
 
-        .button-icon {
-            font-size: 20px;
-            margin-right: 12px;
+        .choice-button-icon {
+            font-size: 18px;
+            margin-right: 10px;
         }
 
-        .button-content {
+        .choice-button-content {
             flex: 1;
             text-align: left;
         }
 
-        .button-text {
+        .choice-button-text {
             display: block;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: white;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
-        .button-description {
+        .choice-button-description {
             display: block;
-            font-size: 13px;
+            font-size: 12px;
             color: rgba(255,255,255,0.9);
-            line-height: 16px;
+            line-height: 14px;
         }
 
         .input-container {
@@ -311,38 +302,13 @@ If you have any questions, feel free to reach out to me directly.
 
 Welcome aboard! 🚀</p>
                     <span class="timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Interactive Buttons -->
-        <div class="button-container hidden" id="button-container">
-            <div class="button-card">
-                <h3 class="button-title">🚀 Ready to Level Up?</h3>
-                <p class="button-subtitle">Choose your path to success:</p>
-                
-                <div class="buttons-list">
-                    <button class="interactive-button" style="background-color: #667eea;" onclick="handleButtonPress('dropshipping')">
-                        <span class="button-icon">🛍️</span>
-                        <div class="button-content">
-                            <span class="button-text">🛍️ Dropshipping!</span>
-                            <span class="button-description">Learn how to start your own online store</span>
-                        </div>
-                    </button>
-                    <button class="interactive-button" style="background-color: #764ba2;" onclick="handleButtonPress('sports')">
-                        <span class="button-icon">🏆</span>
-                        <div class="button-content">
-                            <span class="button-text">🏆 Sports!</span>
-                            <span class="button-description">Master sports betting and analysis</span>
-                        </div>
-                    </button>
-                    <button class="interactive-button" style="background-color: #f093fb;" onclick="handleButtonPress('crypto')">
-                        <span class="button-icon">💰</span>
-                        <div class="button-content">
-                            <span class="button-text">💰 Crypto!</span>
-                            <span class="button-description">Dive into cryptocurrency trading</span>
-                        </div>
-                    </button>
+                    
+                    <!-- Welcome message buttons -->
+                    <div class="welcome-buttons-container">
+                        <button class="welcome-button" onclick="handleWelcomeButtonPress()">
+                            🚀 Get Started
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -389,18 +355,28 @@ If you have any questions, feel free to reach out to me directly.
 
 Welcome aboard! 🚀\`,
                 timestamp: new Date(),
-                sender: 'Whop Owner'
+                sender: 'Whop Owner',
+                hasButtons: true
             };
             messages = [welcomeMessage];
         }
 
-        // Show interactive buttons after delay
-        setTimeout(() => {
-            document.getElementById('button-container').classList.remove('hidden');
-        }, 3000);
+        // Handle welcome button press
+        function handleWelcomeButtonPress() {
+            const userChoice = {
+                id: Date.now().toString(),
+                type: 'sent',
+                content: 'I want to:',
+                timestamp: new Date(),
+                sender: 'User',
+                hasChoiceButtons: true
+            };
+            
+            addMessage(userChoice);
+        }
 
-        // Handle button press
-        function handleButtonPress(option) {
+        // Handle choice button press
+        function handleChoiceButtonPress(option) {
             const userChoice = {
                 id: Date.now().toString(),
                 type: 'sent',
@@ -410,7 +386,6 @@ Welcome aboard! 🚀\`,
             };
             
             addMessage(userChoice);
-            document.getElementById('button-container').classList.add('hidden');
             
             // Send automated response
             setTimeout(() => {
@@ -481,14 +456,57 @@ Ready to dive into the crypto world? Let's make it happen! 🚀\`
         // Render all messages
         function renderMessages() {
             const messagesList = document.getElementById('messages-list');
-            messagesList.innerHTML = messages.map(message => \`
-                <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
-                    <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
-                        <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
-                        <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            messagesList.innerHTML = messages.map(message => {
+                let buttonsHtml = '';
+                
+                if (message.hasButtons) {
+                    buttonsHtml = \`
+                        <div class="welcome-buttons-container">
+                            <button class="welcome-button" onclick="handleWelcomeButtonPress()">
+                                🚀 Get Started
+                            </button>
+                        </div>
+                    \`;
+                }
+                
+                if (message.hasChoiceButtons) {
+                    buttonsHtml = \`
+                        <div class="choice-buttons-container">
+                            <button class="choice-button" style="background-color: #667eea;" onclick="handleChoiceButtonPress('dropshipping')">
+                                <span class="choice-button-icon">🛍️</span>
+                                <div class="choice-button-content">
+                                    <span class="choice-button-text">🛍️ Dropshipping!</span>
+                                    <span class="choice-button-description">Learn how to start your own online store</span>
+                                </div>
+                            </button>
+                            <button class="choice-button" style="background-color: #764ba2;" onclick="handleChoiceButtonPress('sports')">
+                                <span class="choice-button-icon">🏆</span>
+                                <div class="choice-button-content">
+                                    <span class="choice-button-text">🏆 Sports!</span>
+                                    <span class="choice-button-description">Master sports betting and analysis</span>
+                                </div>
+                            </button>
+                            <button class="choice-button" style="background-color: #f093fb;" onclick="handleChoiceButtonPress('crypto')">
+                                <span class="choice-button-icon">💰</span>
+                                <div class="choice-button-content">
+                                    <span class="choice-button-text">💰 Crypto!</span>
+                                    <span class="choice-button-description">Dive into cryptocurrency trading</span>
+                                </div>
+                            </button>
+                        </div>
+                    \`;
+                }
+                
+                return \`
+                    <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
+                        <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
+                            <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
+                            <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            \${buttonsHtml}
+                        </div>
                     </div>
-                </div>
-            \`).join('');
+                \`;
+            }).join('');
             
             // Scroll to bottom
             messagesList.scrollTop = messagesList.scrollHeight;
