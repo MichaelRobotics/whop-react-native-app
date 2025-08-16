@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whop React Native App Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .info-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            word-break: break-all;
+        }
+        
+        .button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .description {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .mobile-frame {
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            padding: 10px;
+            background: #000;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            color: #856404;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="status">
+        ✅ React Native App Preview - Running Locally
+    </div>
+    
+    <div class="instructions">
+        <h3>📱 How to Test Your App:</h3>
+        <ul>
+            <li>This is a <strong>preview</strong> of your React Native app</li>
+            <li>To test the real app, you need to deploy it to Whop</li>
+            <li>Use <code>pnpm ship</code> to deploy with real credentials</li>
+            <li>Then test in the Whop mobile app</li>
+        </ul>
+    </div>
+    
+    <div class="mobile-frame">
+        <div class="container">
+            <div class="header">
+                <h1>🚀 Whop React Native App</h1>
+                <p>Welcome to your new React Native app!</p>
+            </div>
+            
+            <div class="content">
+                <div class="info-container">
+                    <div class="info-text">Company ID: demo-company-123</div>
+                    <div class="info-text">Experience ID: demo-experience-456</div>
+                    <div class="info-text">Current User ID: demo-user-789</div>
+                    <div class="info-text">Path: /experience</div>
+                </div>
+                
+                <button class="button" onclick="greetUser()">
+                    👋 Greet User
+                </button>
+                
+                <div class="description">
+                    This is a React Native app built with the Whop SDK. 
+                    You can customize this view to create amazing mobile experiences!
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function greetUser() {
+            alert('Hello demo-user-789! Welcome to experience demo-experience-456');
+        }
+        
+        // Simulate mobile app behavior
+        console.log('🚀 Whop React Native App Preview Loaded');
+        console.log('📱 This simulates how your app will look in the Whop mobile app');
+    </script>
+</body>
+</html>
