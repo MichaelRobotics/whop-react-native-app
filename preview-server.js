@@ -71,6 +71,12 @@ const htmlContent = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Whop React Native App Preview</title>
+    <script>
+        // Redirect unauthorized users
+        if (!window.location.search.includes('whop_user_id') && !window.location.search.includes('preview=true')) {
+            window.location.href = 'https://whop.com/apps/app_FInBMCJGyVdD9T';
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -594,6 +600,19 @@ const webhookTestHtml = `
 
 // Routes - Serverless-compatible (serve HTML directly)
 app.get('/', (req, res) => {
+    // In production, only allow Whop requests
+    if (process.env.NODE_ENV === 'production') {
+        const isWhopRequest = req.headers['user-agent']?.includes('Whop') || 
+                             req.query.whop_user_id || 
+                             req.headers['x-whop-signature'];
+        
+        if (!isWhopRequest) {
+            // Redirect unauthorized users to Whop
+            return res.redirect('https://whop.com/apps/app_FInBMCJGyVdD9T');
+        }
+    }
+    
+    // Serve the main app preview for authorized users
     res.send(htmlContent);
 });
 
@@ -807,11 +826,11 @@ app.post('/webhook/whop', async (req, res) => {
         const signature = req.headers['whop-signature'];
         const payload = JSON.stringify(req.body);
         
-        // Verify webhook signature (uncomment in production)
-        // if (!verifyWebhookSignature(payload, signature)) {
-        //     console.log('❌ Invalid webhook signature');
-        //     return res.status(401).json({ error: 'Invalid signature' });
-        // }
+        // Verify webhook signature for security
+        if (!verifyWebhookSignature(payload, signature)) {
+            console.log('❌ Invalid webhook signature');
+            return res.status(401).json({ error: 'Invalid signature' });
+        }
         
         const event = req.body;
         console.log('📥 Received webhook event:', event.type);

@@ -8,6 +8,15 @@
   ],
   "routes": [
     {
+      "src": "/webhook/whop",
+      "dest": "/preview-server.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, whop-signature"
+      }
+    },
+    {
       "src": "/",
       "dest": "/preview-server.js"
     },
@@ -17,10 +26,6 @@
     },
     {
       "src": "/experiences/(.*)",
-      "dest": "/preview-server.js"
-    },
-    {
-      "src": "/webhook/whop",
       "dest": "/preview-server.js"
     },
     {
