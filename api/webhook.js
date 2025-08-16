@@ -161,13 +161,19 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    // Debug logging for all incoming requests
+    console.log('🔍 Webhook request received:');
+    console.log('   Method:', req.method);
+    console.log('   Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('   Body:', JSON.stringify(req.body, null, 2));
+
     try {
         const payload = JSON.stringify(req.body);
         const signature = req.headers['x-whop-signature'] || req.headers['x-webhook-signature'];
         
         // Verify webhook signature
         if (!verifyWebhookSignature(payload, signature)) {
-            console.error('Invalid webhook signature');
+            console.error('❌ Invalid webhook signature');
             return res.status(401).json({ error: 'Invalid signature' });
         }
         
@@ -179,17 +185,32 @@ export default async function handler(req, res) {
         switch (event) {
             case 'app_payment_succeeded':
             case 'payment_succeeded':
+            case 'payment.succeeded':
                 await handlePaymentSucceeded(data);
                 break;
             case 'membership_went_valid':
             case 'app_membership_went_valid':
+            case 'membership.went_valid':
+            case 'membership_valid':
                 await handleMembershipValid(data);
                 break;
             case 'membership_experience_claimed':
+            case 'membership.experience_claimed':
+            case 'experience_claimed':
+            case 'user.joined_community':
+            case 'user_joined_community':
+            case 'community.joined':
                 await handleMembershipClaimed(data);
+                break;
+            case 'membership.created':
+            case 'membership_created':
+            case 'user.created':
+            case 'user_created':
+                await handleMembershipValid(data);
                 break;
             default:
                 console.log(`⚠️ Unhandled event type: ${event}`);
+                console.log(`📋 Full webhook payload:`, JSON.stringify(req.body, null, 2));
         }
         
         res.status(200).json({ success: true, message: 'Webhook processed successfully' });
