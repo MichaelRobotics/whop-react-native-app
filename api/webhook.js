@@ -21,9 +21,6 @@ function verifyWebhookSignature(payload, signature) {
     );
 }
 
-// Import the Whop SDK
-const { whopSdk } = require('../lib/whop-sdk.js');
-
 // Handle payment succeeded events
 async function handlePaymentSucceeded(data) {
     try {
@@ -36,28 +33,11 @@ async function handlePaymentSucceeded(data) {
             return;
         }
         
-        console.log(`Processing payment confirmation for user: ${userId} (${username})`);
+        console.log(`✅ Payment succeeded for user: ${userId} (${username}) - Amount: $${amount}`);
         
-        // Send payment confirmation message using Whop SDK
-        const confirmationMessage = `✅ Payment Confirmed, ${username}!
-
-Your payment has been processed successfully. Thank you for your purchase!
-
-Payment Details:
-• Amount: $${amount || 'N/A'}
-• Date: ${new Date().toLocaleDateString()}
-• Status: Confirmed
-
-You now have full access to all our exclusive content and features.
-
-Enjoy your membership! 🎉`;
-
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: confirmationMessage,
-        });
-
-        console.log('Payment confirmation sent successfully:', result);
+        // TODO: Send welcome message using Whop SDK when available
+        console.log(`📧 Would send payment confirmation to ${username}`);
+        
         return true;
     } catch (error) {
         console.error('Error handling payment succeeded event:', error);
@@ -76,28 +56,11 @@ async function handleMembershipValid(data) {
             return;
         }
         
-        console.log(`Processing welcome message for valid membership: ${userId} (${username})`);
+        console.log(`✅ Membership became valid for user: ${userId} (${username})`);
         
-        // Send welcome message using Whop SDK
-        const welcomeMessage = `🎉 Welcome to our community, ${username}! 
-
-Thank you for joining us! We're excited to have you on board.
-
-Here's what you can expect:
-• Access to exclusive content
-• Community discussions
-• Regular updates and new features
-
-If you have any questions, feel free to reach out to our support team.
-
-Welcome aboard! 🚀`;
-
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: welcomeMessage,
-        });
-
-        console.log('Welcome message sent successfully:', result);
+        // TODO: Send welcome message using Whop SDK when available
+        console.log(`📧 Would send welcome message to ${username}`);
+        
         return true;
     } catch (error) {
         console.error('Error handling membership valid event:', error);
@@ -116,28 +79,11 @@ async function handleMembershipClaimed(data) {
             return;
         }
         
-        console.log(`Processing welcome message for claimed membership: ${userId} (${username})`);
+        console.log(`✅ Membership claimed by user: ${userId} (${username})`);
         
-        // Send welcome message using Whop SDK
-        const welcomeMessage = `🎉 Welcome to our community, ${username}! 
-
-Thank you for joining us! We're excited to have you on board.
-
-Here's what you can expect:
-• Access to exclusive content
-• Community discussions
-• Regular updates and new features
-
-If you have any questions, feel free to reach out to our support team.
-
-Welcome aboard! 🚀`;
-
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: welcomeMessage,
-        });
-
-        console.log('Welcome message sent successfully:', result);
+        // TODO: Send welcome message using Whop SDK when available
+        console.log(`📧 Would send welcome message to ${username}`);
+        
         return true;
     } catch (error) {
         console.error('Error handling membership claimed event:', error);
@@ -162,7 +108,7 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: 'Invalid signature' });
         }
         
-        console.log('Webhook received:', JSON.stringify(req.body, null, 2));
+        console.log('🎉 Webhook received:', JSON.stringify(req.body, null, 2));
         
         const { event, data } = req.body;
         
@@ -180,12 +126,12 @@ export default async function handler(req, res) {
                 await handleMembershipClaimed(data);
                 break;
             default:
-                console.log(`Unhandled event type: ${event}`);
+                console.log(`⚠️ Unhandled event type: ${event}`);
         }
         
-        res.status(200).json({ success: true });
+        res.status(200).json({ success: true, message: 'Webhook processed successfully' });
     } catch (error) {
-        console.error('Webhook error:', error);
+        console.error('❌ Webhook error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 }
