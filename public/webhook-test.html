@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whop Webhook Testing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button:hover {
+            background: #0056b3;
+        }
+        
+        .button.secondary {
+            background: #6c757d;
+        }
+        
+        .button.secondary:hover {
+            background: #545b62;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .webhook-url {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 Whop Webhook Testing</h1>
+            <p>Test your webhook functionality and greeting messages</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h3>📡 Webhook Configuration</h3>
+                <div class="webhook-url">
+                    <strong>Webhook URL:</strong> http://localhost:3000/webhook/whop
+                </div>
+                <p>Configure this URL in your Whop developer dashboard to receive real webhook events.</p>
+                <button class="button secondary" onclick="checkWebhookStatus()">Check Webhook Status</button>
+            </div>
+            
+            <div class="section">
+                <h3>🧪 Test Webhook Events</h3>
+                <div class="form-group">
+                    <label for="eventType">Event Type:</label>
+                    <select id="eventType" onchange="updateEventData()">
+                        <option value="user.joined_community">User Joined Community</option>
+                        <option value="user.sent_message">User Sent Message</option>
+                        <option value="user.entered_experience">User Entered Experience</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="userId">User ID:</label>
+                    <input type="text" id="userId" value="user_123" placeholder="Enter user ID">
+                </div>
+                
+                <div class="form-group">
+                    <label for="userName">Username:</label>
+                    <input type="text" id="userName" value="testuser" placeholder="Enter username">
+                </div>
+                
+                <div class="form-group" id="messageGroup" style="display: none;">
+                    <label for="message">Message:</label>
+                    <textarea id="message" placeholder="Enter message content"></textarea>
+                </div>
+                
+                <div class="form-group" id="experienceGroup" style="display: none;">
+                    <label for="experienceId">Experience ID:</label>
+                    <input type="text" id="experienceId" value="exp_My7RRAeZmG3KaU" placeholder="Enter experience ID">
+                </div>
+                
+                <button class="button" onclick="sendTestWebhook()">Send Test Webhook</button>
+                <button class="button secondary" onclick="clearLog()">Clear Log</button>
+            </div>
+            
+            <div class="section">
+                <h3>📊 Webhook Status</h3>
+                <div id="statusDisplay"></div>
+            </div>
+            
+            <div class="section">
+                <h3>📝 Event Log</h3>
+                <div id="eventLog" class="log"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let logEntries = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logEntry = `[${timestamp}] ${message}`;
+            logEntries.push(logEntry);
+            
+            const logElement = document.getElementById('eventLog');
+            logElement.textContent = logEntries.join('\n');
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            console.log(logEntry);
+        }
+        
+        function updateEventData() {
+            const eventType = document.getElementById('eventType').value;
+            const messageGroup = document.getElementById('messageGroup');
+            const experienceGroup = document.getElementById('experienceGroup');
+            
+            messageGroup.style.display = eventType === 'user.sent_message' ? 'block' : 'none';
+            experienceGroup.style.display = eventType === 'user.entered_experience' ? 'block' : 'none';
+        }
+        
+        async function sendTestWebhook() {
+            const eventType = document.getElementById('eventType').value;
+            const userId = document.getElementById('userId').value;
+            const userName = document.getElementById('userName').value;
+            const message = document.getElementById('message').value;
+            const experienceId = document.getElementById('experienceId').value;
+            
+            const eventData = {
+                type: eventType,
+                timestamp: new Date().toISOString(),
+                data: {
+                    user: {
+                        id: userId,
+                        username: userName,
+                        name: userName
+                    }
+                }
+            };
+            
+            if (eventType === 'user.sent_message') {
+                eventData.data.message = message;
+            } else if (eventType === 'user.entered_experience') {
+                eventData.data.experience = {
+                    id: experienceId
+                };
+            }
+            
+            log(`Sending test webhook: ${eventType}`, 'info');
+            
+            try {
+                const response = await fetch('/webhook/whop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    log(`✅ Webhook sent successfully: ${eventType}`, 'success');
+                    log(`Response: ${JSON.stringify(result, null, 2)}`, 'info');
+                } else {
+                    log(`❌ Webhook failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error sending webhook: ${error.message}`, 'error');
+            }
+        }
+        
+        async function checkWebhookStatus() {
+            try {
+                const response = await fetch('/webhook/status');
+                const status = await response.json();
+                
+                const statusDisplay = document.getElementById('statusDisplay');
+                statusDisplay.innerHTML = `
+                    <div class="status success">
+                        ✅ Webhook Status: ${status.status}
+                    </div>
+                    <p><strong>Total Greeted Users:</strong> ${status.totalGreeted}</p>
+                    <p><strong>Greeted User IDs:</strong> ${status.greetedUsers.join(', ') || 'None'}</p>
+                    <p><strong>Last Updated:</strong> ${status.timestamp}</p>
+                `;
+                
+                log(`📊 Webhook status checked: ${status.totalGreeted} users greeted`, 'info');
+            } catch (error) {
+                log(`❌ Error checking status: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLog() {
+            logEntries = [];
+            document.getElementById('eventLog').textContent = '';
+        }
+        
+        // Initialize
+        updateEventData();
+        checkWebhookStatus();
+        log('🚀 Webhook testing interface loaded', 'info');
+    </script>
+</body>
+</html>
