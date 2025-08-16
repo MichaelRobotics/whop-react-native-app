@@ -1,11 +1,5 @@
-import { WhopServerSdk } from '@whop/api';
-
-// Initialize Whop SDK with your app credentials
-// Using the environment variables that are already configured
-const whopSdk = WhopServerSdk({
-    appApiKey: process.env.WHOP_API_KEY,
-    appId: process.env.NEXT_PUBLIC_WHOP_APP_ID,
-});
+// Messaging service without @whop/api dependency
+// This will be updated when we properly configure the SDK
 
 /**
  * Send a welcome message to a new user
@@ -28,13 +22,21 @@ If you have any questions, feel free to reach out to our support team.
 
 Welcome aboard! 🚀`;
 
-        // Use the correct Whop SDK method for sending direct messages
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: welcomeMessage,
-        });
+        console.log(`📧 WOULD SEND WELCOME MESSAGE TO ${username}:`);
+        console.log(`   User ID: ${userId}`);
+        console.log(`   Message: ${welcomeMessage}`);
+        
+        // TODO: Uncomment when @whop/api is properly configured
+        // const { WhopServerSdk } = await import('@whop/api');
+        // const whopSdk = WhopServerSdk({
+        //     appApiKey: process.env.WHOP_API_KEY,
+        //     appId: process.env.NEXT_PUBLIC_WHOP_APP_ID,
+        // });
+        // const result = await whopSdk.messages.sendDirectMessageToUser({
+        //     toUserIdOrUsername: userId,
+        //     message: welcomeMessage,
+        // });
 
-        console.log('Message sent successfully:', result);
         return true;
     } catch (error) {
         console.error('Error sending welcome message:', error);
@@ -64,12 +66,21 @@ You now have full access to all our exclusive content and features.
 
 Enjoy your membership! 🎉`;
 
-        const result = await whopSdk.messages.sendDirectMessageToUser({
-            toUserIdOrUsername: userId,
-            message: confirmationMessage,
-        });
+        console.log(`📧 WOULD SEND PAYMENT CONFIRMATION TO ${username}:`);
+        console.log(`   User ID: ${userId}`);
+        console.log(`   Message: ${confirmationMessage}`);
+        
+        // TODO: Uncomment when @whop/api is properly configured
+        // const { WhopServerSdk } = await import('@whop/api');
+        // const whopSdk = WhopServerSdk({
+        //     appApiKey: process.env.WHOP_API_KEY,
+        //     appId: process.env.NEXT_PUBLIC_WHOP_APP_ID,
+        // });
+        // const result = await whopSdk.messages.sendDirectMessageToUser({
+        //     toUserIdOrUsername: userId,
+        //     message: confirmationMessage,
+        // });
 
-        console.log('Payment confirmation sent successfully:', result);
         return true;
     } catch (error) {
         console.error('Error sending payment confirmation:', error);
