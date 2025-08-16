@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Test webhook endpoint
-const WEBHOOK_URL = 'https://whop-react-native-q9mnl123o-michaelrobotics-projects.vercel.app/api/webhook';
+const WEBHOOK_URL = 'https://whop-react-native-gl4o05xai-michaelrobotics-projects.vercel.app/api/webhook';
 const WEBHOOK_SECRET = 'ws_ca76a75da35c7f8271455638e8fea03b8acd42ef00ceab9b4fc037f3bb284fa7';
 
 // Test payload
@@ -38,7 +38,7 @@ const https = require('https');
 const postData = payload;
 
 const options = {
-    hostname: 'whop-react-native-q9mnl123o-michaelrobotics-projects.vercel.app',
+    hostname: 'whop-react-native-gl4o05xai-michaelrobotics-projects.vercel.app',
     port: 443,
     path: '/api/webhook',
     method: 'POST',
