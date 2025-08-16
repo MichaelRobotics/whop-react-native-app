@@ -5,6 +5,7 @@ const ChatInterfaceWeb = ({ userId, username = 'User' }) => {
     const [inputText, setInputText] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [rocketAnim, setRocketAnim] = useState(false);
     
     const messagesEndRef = useRef(null);
     const wsRef = useRef(null);
@@ -188,6 +189,10 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
     };
 
     const handleWelcomeButtonPress = () => {
+        // Rocket launch animation
+        setRocketAnim(true);
+        setTimeout(() => setRocketAnim(false), 500);
+
         // Add user's "I want to:" message
         const userChoice = {
             id: Date.now().toString(),
@@ -287,8 +292,14 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
 
             {/* Messages */}
             <div className="messages-list">
-                {messages.map((message) => (
-                    <div key={message.id} className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}>
+                {messages.map((message, index) => (
+                    <div 
+                        key={message.id} 
+                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'} message-animate`}
+                        style={{
+                            animationDelay: `${index * 0.1}s`
+                        }}
+                    >
                         <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
                             <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
                                 {message.content}
@@ -301,7 +312,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                             {message.hasButtons && (
                                 <div className="welcome-buttons-container">
                                     <button
-                                        className="welcome-button"
+                                        className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
                                         onClick={handleWelcomeButtonPress}
                                     >
                                         🚀 Get Started
@@ -447,6 +458,16 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 .message-container {
                     margin: 5px 0;
                     display: flex;
+                    opacity: 0;
+                    transform: translateY(20px);
+                    animation: messageSlideIn 0.5s ease-out forwards;
+                }
+
+                @keyframes messageSlideIn {
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
 
                 .sent-message {
@@ -465,7 +486,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 }
 
                 .sent-bubble {
-                    background-color: #667eea;
+                    background-color: rgba(102, 126, 234, 0.9); /* More transparent */
                     border-bottom-right-radius: 5px;
                 }
 
@@ -512,34 +533,47 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                     font-size: 16px;
                     font-weight: 600;
                     cursor: pointer;
-                    transition: background-color 0.2s;
+                    transition: all 0.3s ease;
                     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 }
 
                 .welcome-button:hover {
                     background-color: #5a6fd8;
+                    transform: translateY(-2px);
+                }
+
+                .welcome-button.rocket-animate {
+                    animation: rocketLaunch 0.5s ease-in-out;
+                }
+
+                @keyframes rocketLaunch {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.2); }
+                    100% { transform: scale(1); }
                 }
 
                 .choice-buttons-container {
                     margin-top: 15px;
                     display: flex;
                     flex-direction: column;
-                    gap: 8px;
+                    gap: 12px; /* Increased gap for larger buttons */
                 }
 
                 .choice-button {
                     display: flex;
                     align-items: center;
-                    padding: 12px;
-                    border-radius: 12px;
+                    padding: 16px; /* Increased padding for larger buttons */
+                    border-radius: 16px; /* Increased border radius */
                     border: none;
                     cursor: pointer;
-                    transition: transform 0.2s ease;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    transition: all 0.3s ease;
+                    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+                    min-height: 60px; /* Minimum height for larger buttons */
                 }
 
                 .choice-button:hover {
-                    transform: translateY(-1px);
+                    transform: translateY(-3px);
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
                 }
 
                 .choice-button:active {
@@ -547,8 +581,8 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 }
 
                 .choice-button-icon {
-                    font-size: 18px;
-                    margin-right: 10px;
+                    font-size: 22px; /* Larger icon */
+                    margin-right: 12px;
                 }
 
                 .choice-button-content {
@@ -558,17 +592,17 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
 
                 .choice-button-text {
                     display: block;
-                    font-size: 14px;
+                    font-size: 16px; /* Larger text */
                     font-weight: bold;
                     color: white;
-                    margin-bottom: 2px;
+                    margin-bottom: 3px;
                 }
 
                 .choice-button-description {
                     display: block;
-                    font-size: 12px;
+                    font-size: 14px; /* Larger description */
                     color: rgba(255,255,255,0.9);
-                    line-height: 14px;
+                    line-height: 16px;
                 }
 
                 .input-container {

@@ -99,6 +99,16 @@ const htmlContent = `
         .message-container {
             margin: 5px 0;
             display: flex;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: messageSlideIn 0.5s ease-out forwards;
+        }
+
+        @keyframes messageSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .sent-message {
@@ -117,7 +127,7 @@ const htmlContent = `
         }
 
         .sent-bubble {
-            background-color: #667eea;
+            background-color: rgba(102, 126, 234, 0.9); /* More transparent */
             border-bottom-right-radius: 5px;
         }
 
@@ -164,34 +174,47 @@ const htmlContent = `
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .welcome-button:hover {
             background-color: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .welcome-button.rocket-animate {
+            animation: rocketLaunch 0.5s ease-in-out;
+        }
+
+        @keyframes rocketLaunch {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
 
         .choice-buttons-container {
             margin-top: 15px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px; /* Increased gap for larger buttons */
         }
 
         .choice-button {
             display: flex;
             align-items: center;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 16px; /* Increased padding for larger buttons */
+            border-radius: 16px; /* Increased border radius */
             border: none;
             cursor: pointer;
-            transition: transform 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+            min-height: 60px; /* Minimum height for larger buttons */
         }
 
         .choice-button:hover {
-            transform: translateY(-1px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
 
         .choice-button:active {
@@ -199,8 +222,8 @@ const htmlContent = `
         }
 
         .choice-button-icon {
-            font-size: 18px;
-            margin-right: 10px;
+            font-size: 22px; /* Larger icon */
+            margin-right: 12px;
         }
 
         .choice-button-content {
@@ -210,17 +233,17 @@ const htmlContent = `
 
         .choice-button-text {
             display: block;
-            font-size: 14px;
+            font-size: 16px; /* Larger text */
             font-weight: bold;
             color: white;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .choice-button-description {
             display: block;
-            font-size: 12px;
+            font-size: 14px; /* Larger description */
             color: rgba(255,255,255,0.9);
-            line-height: 14px;
+            line-height: 16px;
         }
 
         .input-container {
@@ -287,7 +310,7 @@ const htmlContent = `
 
         <!-- Messages -->
         <div class="messages-list" id="messages-list">
-            <div class="message-container received-message">
+            <div class="message-container received-message" style="animation-delay: 0s;">
                 <div class="message-bubble received-bubble">
                     <p class="message-text received-text">🎉 Welcome to our community, User! 
 
@@ -336,6 +359,7 @@ Welcome aboard! 🚀</p>
     <script>
         let messages = [];
         let isConnected = true;
+        let rocketAnim = false;
 
         // Initialize chat
         function initializeChat() {
@@ -363,6 +387,11 @@ Welcome aboard! 🚀\`,
 
         // Handle welcome button press
         function handleWelcomeButtonPress() {
+            // Rocket launch animation
+            const button = document.querySelector('.welcome-button');
+            button.classList.add('rocket-animate');
+            setTimeout(() => button.classList.remove('rocket-animate'), 500);
+
             const userChoice = {
                 id: Date.now().toString(),
                 type: 'sent',
@@ -456,7 +485,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀\`
         // Render all messages
         function renderMessages() {
             const messagesList = document.getElementById('messages-list');
-            messagesList.innerHTML = messages.map(message => {
+            messagesList.innerHTML = messages.map((message, index) => {
                 let buttonsHtml = '';
                 
                 if (message.hasButtons) {
@@ -498,7 +527,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀\`
                 }
                 
                 return \`
-                    <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
+                    <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}" style="animation-delay: \${index * 0.1}s;">
                         <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
                             <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
                             <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
