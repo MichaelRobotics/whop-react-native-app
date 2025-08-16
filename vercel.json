@@ -4,9 +4,17 @@
     {
       "src": "preview-server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/webhook.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/api/webhook",
+      "dest": "/api/webhook.js"
+    },
     {
       "src": "/",
       "dest": "/preview-server.js"
