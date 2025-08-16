@@ -1,7 +1,13 @@
 const crypto = require('crypto');
 
 // Webhook secret for authentication
-const WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET || 'ws_ca76a75da35c7f8271455638e8fea03b8acd42ef00ceab9b4fc037f3bb284fa7';
+const WEBHOOK_SECRET = process.env.WHOP_WEBHOOK_SECRET;
+
+// Debug environment variables
+console.log('🔧 Environment variables check:');
+console.log('   WHOP_WEBHOOK_SECRET exists:', !!process.env.WHOP_WEBHOOK_SECRET);
+console.log('   WHOP_WEBHOOK_SECRET length:', process.env.WHOP_WEBHOOK_SECRET ? process.env.WHOP_WEBHOOK_SECRET.length : 0);
+console.log('   WHOP_WEBHOOK_SECRET starts with:', process.env.WHOP_WEBHOOK_SECRET ? process.env.WHOP_WEBHOOK_SECRET.substring(0, 10) + '...' : 'undefined');
 
 // Function to verify webhook signature
 function verifyWebhookSignature(payload, signature) {
