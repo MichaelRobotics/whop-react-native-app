@@ -29,6 +29,7 @@ const ChatInterface = ({ userId, username = 'User' }) => {
     const scaleAnim = new Animated.Value(0.8);
     const rocketAnim = new Animated.Value(0);
     const choiceContainerAnim = new Animated.Value(0);
+    const goldShimmerAnim = new Animated.Value(0);
     
     const flatListRef = useRef(null);
     const wsRef = useRef(null);
@@ -43,6 +44,9 @@ const ChatInterface = ({ userId, username = 'User' }) => {
         // Connect to WebSocket
         connectWebSocket();
         
+        // Start gold shimmer animation
+        startGoldShimmer();
+        
         return () => {
             if (wsRef.current) {
                 wsRef.current.close();
@@ -52,6 +56,23 @@ const ChatInterface = ({ userId, username = 'User' }) => {
             }
         };
     }, [userId]);
+
+    const startGoldShimmer = () => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(goldShimmerAnim, {
+                    toValue: 1,
+                    duration: 2000,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(goldShimmerAnim, {
+                    toValue: 0,
+                    duration: 2000,
+                    useNativeDriver: false,
+                })
+            ])
+        ).start();
+    };
 
     const initializeChat = () => {
         const welcomeMessage = {
@@ -271,54 +292,85 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         }
     };
 
-    const renderMessage = ({ item }) => (
-        <View style={[
-            styles.messageContainer,
-            item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
-        ]}>
+    const renderMessage = ({ item }) => {
+        // Check if message contains links for gold shimmer effect
+        const hasLinks = item.content && item.content.includes('https://');
+        
+        return (
             <View style={[
-                styles.messageBubble,
-                item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
+                styles.messageContainer,
+                item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
             ]}>
-                <Text style={[
-                    styles.messageText,
-                    item.type === 'sent' ? styles.sentText : styles.receivedText
+                <View style={[
+                    styles.messageBubble,
+                    item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
                 ]}>
-                    {item.content}
-                </Text>
-                <Text style={styles.timestamp}>
-                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                
-                {/* Welcome message buttons */}
-                {item.hasButtons && (
-                    <View style={styles.welcomeButtonsContainer}>
-                        <TouchableOpacity
-                            style={styles.welcomeButton}
-                            onPress={handleWelcomeButtonPress}
-                            activeOpacity={0.8}
-                        >
-                            <Animated.Text 
-                                style={[
-                                    styles.welcomeButtonText,
-                                    {
-                                        transform: [{
-                                            scale: rocketAnim.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [1, 1.2]
-                                            })
-                                        }]
-                                    }
-                                ]}
+                    {hasLinks ? (
+                        <Animated.View style={[
+                            styles.messageContent,
+                            {
+                                borderWidth: 2,
+                                borderColor: goldShimmerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['rgba(255, 215, 0, 0.3)', 'rgba(255, 215, 0, 0.8)']
+                                }),
+                                borderRadius: 12,
+                                padding: 8,
+                                backgroundColor: goldShimmerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['rgba(255, 215, 0, 0.05)', 'rgba(255, 215, 0, 0.15)']
+                                })
+                            }
+                        ]}>
+                            <Text style={[
+                                styles.messageText,
+                                item.type === 'sent' ? styles.sentText : styles.receivedText
+                            ]}>
+                                {item.content}
+                            </Text>
+                        </Animated.View>
+                    ) : (
+                        <Text style={[
+                            styles.messageText,
+                            item.type === 'sent' ? styles.sentText : styles.receivedText
+                        ]}>
+                            {item.content}
+                        </Text>
+                    )}
+                    <Text style={styles.timestamp}>
+                        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                    
+                    {/* Welcome message buttons */}
+                    {item.hasButtons && (
+                        <View style={styles.welcomeButtonsContainer}>
+                            <TouchableOpacity
+                                style={styles.welcomeButton}
+                                onPress={handleWelcomeButtonPress}
+                                activeOpacity={0.8}
                             >
-                                🚀 Get Started
-                            </Animated.Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                                <Animated.Text 
+                                    style={[
+                                        styles.welcomeButtonText,
+                                        {
+                                            transform: [{
+                                                scale: rocketAnim.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [1, 1.2]
+                                                })
+                                            }]
+                                        }
+                                    ]}
+                                >
+                                    🚀 Get Started
+                                </Animated.Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     if (isLoading) {
         return (
@@ -504,6 +556,9 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 5,
         borderWidth: 1,
         borderColor: '#e9ecef',
+    },
+    messageContent: {
+        // Container for messages with gold shimmer effect
     },
     messageText: {
         fontSize: 16,

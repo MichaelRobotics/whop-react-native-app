@@ -127,6 +127,60 @@ const htmlContent = `
             border: 1px solid #e9ecef;
         }
 
+        .message-content {
+            border-radius: 12px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gold-shimmer {
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: linear-gradient(
+                45deg,
+                rgba(255, 215, 0, 0.05) 0%,
+                rgba(255, 215, 0, 0.15) 50%,
+                rgba(255, 215, 0, 0.05) 100%
+            );
+            animation: goldShimmer 4s ease-in-out infinite;
+        }
+
+        .gold-shimmer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 215, 0, 0.4),
+                transparent
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes goldShimmer {
+            0%, 100% {
+                border-color: rgba(255, 215, 0, 0.3);
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            }
+            50% {
+                border-color: rgba(255, 215, 0, 0.8);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+            100% {
+                left: 100%;
+            }
+        }
+
         .message-text {
             font-size: 16px;
             line-height: 22px;
@@ -502,6 +556,7 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
         function renderMessages() {
             const messagesList = document.getElementById('messages-list');
             messagesList.innerHTML = messages.map((message, index) => {
+                const hasLinks = message.content && message.content.includes('https://');
                 let buttonsHtml = '';
                 
                 if (message.hasButtons) {
@@ -514,10 +569,16 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
                     \`;
                 }
                 
+                const messageContent = hasLinks ? 
+                    \`<div class="message-content gold-shimmer">
+                        <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
+                    </div>\` : 
+                    \`<p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>\`;
+                
                 return \`
                     <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
                         <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
-                            <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
+                            \${messageContent}
                             <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             \${buttonsHtml}
                         </div>

@@ -258,33 +258,45 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
             {/* Messages */}
             <div className="messages-list">
-                {messages.map((message) => (
-                    <div 
-                        key={message.id} 
-                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
-                    >
-                        <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
-                            <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
-                                {message.content}
-                            </p>
-                            <span className="timestamp">
-                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            
-                            {/* Welcome message buttons */}
-                            {message.hasButtons && (
-                                <div className="welcome-buttons-container">
-                                    <button
-                                        className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
-                                        onClick={handleWelcomeButtonPress}
-                                    >
-                                        🚀 Get Started
-                                    </button>
-                                </div>
-                            )}
+                {messages.map((message) => {
+                    const hasLinks = message.content && message.content.includes('https://');
+                    
+                    return (
+                        <div 
+                            key={message.id} 
+                            className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
+                        >
+                            <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
+                                {hasLinks ? (
+                                    <div className="message-content gold-shimmer">
+                                        <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
+                                            {message.content}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
+                                        {message.content}
+                                    </p>
+                                )}
+                                <span className="timestamp">
+                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                
+                                {/* Welcome message buttons */}
+                                {message.hasButtons && (
+                                    <div className="welcome-buttons-container">
+                                        <button
+                                            className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
+                                            onClick={handleWelcomeButtonPress}
+                                        >
+                                            🚀 Get Started
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
                 <div ref={messagesEndRef} />
             </div>
 
@@ -449,6 +461,60 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     background-color: white;
                     border-bottom-left-radius: 5px;
                     border: 1px solid #e9ecef;
+                }
+
+                .message-content {
+                    border-radius: 12px;
+                    padding: 8px;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .gold-shimmer {
+                    border: 2px solid rgba(255, 215, 0, 0.3);
+                    background: linear-gradient(
+                        45deg,
+                        rgba(255, 215, 0, 0.05) 0%,
+                        rgba(255, 215, 0, 0.15) 50%,
+                        rgba(255, 215, 0, 0.05) 100%
+                    );
+                    animation: goldShimmer 4s ease-in-out infinite;
+                }
+
+                .gold-shimmer::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(
+                        90deg,
+                        transparent,
+                        rgba(255, 215, 0, 0.4),
+                        transparent
+                    );
+                    animation: shimmer 3s infinite;
+                }
+
+                @keyframes goldShimmer {
+                    0%, 100% {
+                        border-color: rgba(255, 215, 0, 0.3);
+                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+                    }
+                    50% {
+                        border-color: rgba(255, 215, 0, 0.8);
+                        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+                    }
+                }
+
+                @keyframes shimmer {
+                    0% {
+                        left: -100%;
+                    }
+                    100% {
+                        left: 100%;
+                    }
                 }
 
                 .message-text {
