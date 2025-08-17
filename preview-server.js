@@ -44,7 +44,7 @@ const htmlContent = `
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f0f2f5;
+            background-color: #f8f9fa;
             height: 100vh;
             overflow: hidden;
             margin: 0;
@@ -62,7 +62,7 @@ const htmlContent = `
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #f0f2f5;
+            background-color: #f8f9fa;
         }
 
         .chat-header {
@@ -71,7 +71,6 @@ const htmlContent = `
             border-bottom: 1px solid #e9ecef;
             display: flex;
             align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .header-info {
@@ -98,7 +97,7 @@ const htmlContent = `
         }
 
         .message-container {
-            margin: 4px 0;
+            margin: 5px 0;
             display: flex;
         }
 
@@ -111,66 +110,42 @@ const htmlContent = `
         }
 
         .message-bubble {
-            max-width: 75%;
-            padding: 8px 12px;
-            border-radius: 18px;
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 20px;
             position: relative;
         }
 
         .sent-bubble {
-            background-color: #0084ff;
-            border-bottom-right-radius: 4px;
+            background-color: rgba(102, 126, 234, 0.9); /* More transparent */
+            border-bottom-right-radius: 5px;
         }
 
         .received-bubble {
             background-color: white;
-            border-bottom-left-radius: 4px;
+            border-bottom-left-radius: 5px;
             border: 1px solid #e9ecef;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
 
         .message-content {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-start;
-        }
-
-        .message-text {
-            font-size: 16px;
-            line-height: 20px;
-            color: #1a1a1a;
-        }
-
-        .sent-bubble .message-text {
-            color: white;
-        }
-
-        .gold-link-button {
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 2px 1px;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        .gold-link-text {
-            background-color: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.6);
-            border-radius: 8px;
-            padding: 4px 8px;
-            font-size: 14px;
-            color: #1a1a1a;
-            text-decoration: underline;
-            font-weight: 500;
-            display: inline-block;
-            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
-            animation: goldShimmer 4s ease-in-out infinite;
+            border-radius: 12px;
+            padding: 8px;
             position: relative;
             overflow: hidden;
         }
 
-        .gold-link-text::before {
+        .gold-shimmer {
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: linear-gradient(
+                45deg,
+                rgba(255, 215, 0, 0.05) 0%,
+                rgba(255, 215, 0, 0.15) 50%,
+                rgba(255, 215, 0, 0.05) 100%
+            );
+            animation: goldShimmer 4s ease-in-out infinite;
+        }
+
+        .gold-shimmer::before {
             content: '';
             position: absolute;
             top: 0;
@@ -188,12 +163,12 @@ const htmlContent = `
 
         @keyframes goldShimmer {
             0%, 100% {
-                border-color: rgba(255, 215, 0, 0.6);
-                box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+                border-color: rgba(255, 215, 0, 0.3);
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
             }
             50% {
-                border-color: rgba(255, 215, 0, 0.9);
-                box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+                border-color: rgba(255, 215, 0, 0.8);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
             }
         }
 
@@ -206,35 +181,49 @@ const htmlContent = `
             }
         }
 
+        .message-text {
+            font-size: 16px;
+            line-height: 22px;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .sent-text {
+            color: white;
+        }
+
+        .received-text {
+            color: #1a1a1a;
+        }
+
         .timestamp {
-            font-size: 11px;
+            font-size: 12px;
             color: #999;
-            margin-top: 4px;
+            margin-top: 5px;
             display: block;
             text-align: right;
-            opacity: 0.7;
         }
 
         .welcome-buttons-container {
-            margin-top: 12px;
+            margin-top: 15px;
             text-align: center;
         }
 
         .welcome-button {
-            background-color: #0084ff;
+            background-color: #667eea;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 15px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .welcome-button:hover {
-            background-color: #0073e6;
+            background-color: #5a6fd8;
             transform: translateY(-2px);
         }
 
@@ -340,7 +329,7 @@ const htmlContent = `
 
         .text-input {
             flex: 1;
-            background-color: #f0f2f5;
+            background-color: #f8f9fa;
             border: 1px solid #e9ecef;
             border-radius: 20px;
             padding: 10px 15px;
@@ -352,11 +341,11 @@ const htmlContent = `
 
         .text-input:focus {
             outline: none;
-            border-color: #0084ff;
+            border-color: #667eea;
         }
 
         .send-button {
-            background-color: #0084ff;
+            background-color: #667eea;
             color: white;
             border: none;
             border-radius: 20px;
@@ -368,7 +357,7 @@ const htmlContent = `
         }
 
         .send-button:hover:not(.send-button-disabled) {
-            background-color: #0073e6;
+            background-color: #5a6fd8;
         }
 
         .send-button-disabled {
@@ -395,11 +384,9 @@ const htmlContent = `
         <div class="messages-list" id="messages-list">
             <div class="message-container received-message">
                 <div class="message-bubble received-bubble">
-                    <div class="message-content">
-                        <span class="message-text">🎉 Welcome User! 
+                    <p class="message-text received-text">🎉 Welcome User! 
 
-Ready to level up? Choose your path below! 🚀</span>
-                    </div>
+Ready to level up? Choose your path below! 🚀</p>
                     <span class="timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     
                     <!-- Welcome message buttons -->
@@ -565,33 +552,11 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
             renderMessages();
         }
 
-        // Render message content with gold links
-        function renderMessageContent(content) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const parts = content.split(urlRegex);
-            
-            let html = '';
-            parts.forEach((part, index) => {
-                if (urlRegex.test(part)) {
-                    html += \`<button class="gold-link-button" onclick="handleLinkClick('\${part}')">
-                        <span class="gold-link-text">\${part}</span>
-                    </button>\`;
-                } else {
-                    html += \`<span class="message-text">\${part}</span>\`;
-                }
-            });
-            return html;
-        }
-
-        // Handle link click
-        function handleLinkClick(url) {
-            window.open(url, '_blank');
-        }
-
         // Render all messages
         function renderMessages() {
             const messagesList = document.getElementById('messages-list');
             messagesList.innerHTML = messages.map((message, index) => {
+                const hasLinks = message.content && message.content.includes('https://');
                 let buttonsHtml = '';
                 
                 if (message.hasButtons) {
@@ -604,12 +569,16 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
                     \`;
                 }
                 
+                const messageContent = hasLinks ? 
+                    \`<div class="message-content gold-shimmer">
+                        <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
+                    </div>\` : 
+                    \`<p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>\`;
+                
                 return \`
                     <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
                         <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
-                            <div class="message-content">
-                                \${renderMessageContent(message.content)}
-                            </div>
+                            \${messageContent}
                             <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             \${buttonsHtml}
                         </div>
