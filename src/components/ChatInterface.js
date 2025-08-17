@@ -11,8 +11,7 @@ import {
     KeyboardAvoidingView, 
     Platform,
     Alert,
-    ActivityIndicator,
-    Linking
+    ActivityIndicator
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -293,109 +292,85 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         }
     };
 
-    const handleLinkPress = async (url) => {
-        try {
-            const supported = await Linking.canOpenURL(url);
-            if (supported) {
-                await Linking.openURL(url);
-            } else {
-                Alert.alert('Error', 'Cannot open this link');
-            }
-        } catch (error) {
-            Alert.alert('Error', 'Failed to open link');
-        }
-    };
-
-    const renderMessageContent = (content) => {
-        // Split content by URLs and render each part
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const parts = content.split(urlRegex);
+    const renderMessage = ({ item }) => {
+        // Check if message contains links for gold shimmer effect
+        const hasLinks = item.content && item.content.includes('https://');
         
-        return parts.map((part, index) => {
-            if (urlRegex.test(part)) {
-                return (
-                    <TouchableOpacity
-                        key={index}
-                        style={styles.goldLinkButton}
-                        onPress={() => handleLinkPress(part)}
-                        activeOpacity={0.8}
-                    >
+        return (
+            <View style={[
+                styles.messageContainer,
+                item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
+            ]}>
+                <View style={[
+                    styles.messageBubble,
+                    item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
+                ]}>
+                    {hasLinks ? (
                         <Animated.View style={[
-                            styles.goldLinkContainer,
+                            styles.messageContent,
                             {
+                                borderWidth: 2,
                                 borderColor: goldShimmerAnim.interpolate({
                                     inputRange: [0, 1],
-                                    outputRange: ['rgba(255, 215, 0, 0.6)', 'rgba(255, 215, 0, 1)']
+                                    outputRange: ['rgba(255, 215, 0, 0.3)', 'rgba(255, 215, 0, 0.8)']
                                 }),
+                                borderRadius: 12,
+                                padding: 8,
                                 backgroundColor: goldShimmerAnim.interpolate({
                                     inputRange: [0, 1],
-                                    outputRange: ['rgba(255, 215, 0, 0.1)', 'rgba(255, 215, 0, 0.2)']
-                                }),
-                                shadowOpacity: goldShimmerAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [0.3, 0.6]
+                                    outputRange: ['rgba(255, 215, 0, 0.05)', 'rgba(255, 215, 0, 0.15)']
                                 })
                             }
                         ]}>
-                            <Text style={styles.goldLinkText}>{part}</Text>
+                            <Text style={[
+                                styles.messageText,
+                                item.type === 'sent' ? styles.sentText : styles.receivedText
+                            ]}>
+                                {item.content}
+                            </Text>
                         </Animated.View>
-                    </TouchableOpacity>
-                );
-            } else {
-                return (
-                    <Text key={index} style={styles.messageText}>
-                        {part}
+                    ) : (
+                        <Text style={[
+                            styles.messageText,
+                            item.type === 'sent' ? styles.sentText : styles.receivedText
+                        ]}>
+                            {item.content}
+                        </Text>
+                    )}
+                    <Text style={styles.timestamp}>
+                        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
-                );
-            }
-        });
-    };
-
-    const renderMessage = ({ item }) => (
-        <View style={[
-            styles.messageContainer,
-            item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
-        ]}>
-            <View style={[
-                styles.messageBubble,
-                item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
-            ]}>
-                <View style={styles.messageContent}>
-                    {renderMessageContent(item.content)}
-                </View>
-                <Text style={styles.timestamp}>
-                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                
-                {/* Welcome message buttons */}
-                {item.hasButtons && (
-                    <View style={styles.welcomeButtonsContainer}>
-                        <TouchableOpacity
-                            style={styles.welcomeButton}
-                            onPress={handleWelcomeButtonPress}
-                            activeOpacity={0.8}
-                        >
-                            <Animated.Text 
-                                style={[
-                                    styles.welcomeButtonText,
-                                    {
-                                        transform: [{
-                                            scale: rocketAnim.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [1, 1.2]
-                                            })
-                                        }]
-                                    }
-                                ]}
+                    
+                    {/* Welcome message buttons */}
+                    {item.hasButtons && (
+                        <View style={styles.welcomeButtonsContainer}>
+                            <TouchableOpacity
+                                style={styles.welcomeButton}
+                                onPress={handleWelcomeButtonPress}
+                                activeOpacity={0.8}
                             >
-                                🚀 Get Started
-                            </Animated.Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                                <Animated.Text 
+                                    style={[
+                                        styles.welcomeButtonText,
+                                        {
+                                            transform: [{
+                                                scale: rocketAnim.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [1, 1.2]
+                                                })
+                                            }]
+                                        }
+                                    ]}
+                                >
+                                    🚀 Get Started
+                                </Animated.Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     if (isLoading) {
         return (
@@ -583,37 +558,17 @@ const styles = StyleSheet.create({
         borderColor: '#e9ecef',
     },
     messageContent: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        alignItems: 'flex-start',
+        // Container for messages with gold shimmer effect
     },
     messageText: {
         fontSize: 16,
         lineHeight: 22,
+    },
+    sentText: {
+        color: 'white',
+    },
+    receivedText: {
         color: '#1a1a1a',
-    },
-    goldLinkButton: {
-        marginVertical: 2,
-        marginHorizontal: 1,
-    },
-    goldLinkContainer: {
-        backgroundColor: 'rgba(255, 215, 0, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 215, 0, 0.6)',
-        borderRadius: 8,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        shadowColor: '#ffd700',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    goldLinkText: {
-        fontSize: 14,
-        color: '#1a1a1a',
-        textDecorationLine: 'underline',
-        fontWeight: '500',
     },
     timestamp: {
         fontSize: 12,

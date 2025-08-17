@@ -128,45 +128,24 @@ const htmlContent = `
         }
 
         .message-content {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-start;
+            border-radius: 12px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .message-text {
-            font-size: 16px;
-            line-height: 22px;
-            color: #1a1a1a;
-        }
-
-        .sent-bubble .message-text {
-            color: white;
-        }
-
-        .gold-link-button {
-            background: none;
-            border: none;
-            padding: 0;
-            margin: 2px 1px;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        .gold-link-text {
-            background-color: rgba(255, 215, 0, 0.1);
-            border: 1px solid rgba(255, 215, 0, 0.6);
-            border-radius: 8px;
-            padding: 4px 8px;
-            font-size: 14px;
-            color: #1a1a1a;
-            text-decoration: underline;
-            font-weight: 500;
-            display: inline-block;
-            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        .gold-shimmer {
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            background: linear-gradient(
+                45deg,
+                rgba(255, 215, 0, 0.05) 0%,
+                rgba(255, 215, 0, 0.15) 50%,
+                rgba(255, 215, 0, 0.05) 100%
+            );
             animation: goldShimmer 4s ease-in-out infinite;
         }
 
-        .gold-link-text::before {
+        .gold-shimmer::before {
             content: '';
             position: absolute;
             top: 0;
@@ -184,12 +163,12 @@ const htmlContent = `
 
         @keyframes goldShimmer {
             0%, 100% {
-                border-color: rgba(255, 215, 0, 0.6);
-                box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+                border-color: rgba(255, 215, 0, 0.3);
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
             }
             50% {
-                border-color: rgba(255, 215, 0, 0.9);
-                box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+                border-color: rgba(255, 215, 0, 0.8);
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
             }
         }
 
@@ -200,6 +179,21 @@ const htmlContent = `
             100% {
                 left: 100%;
             }
+        }
+
+        .message-text {
+            font-size: 16px;
+            line-height: 22px;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .sent-text {
+            color: white;
+        }
+
+        .received-text {
+            color: #1a1a1a;
         }
 
         .timestamp {
@@ -390,11 +384,9 @@ const htmlContent = `
         <div class="messages-list" id="messages-list">
             <div class="message-container received-message">
                 <div class="message-bubble received-bubble">
-                    <div class="message-content">
-                        <span class="message-text">🎉 Welcome User! 
+                    <p class="message-text received-text">🎉 Welcome User! 
 
-Ready to level up? Choose your path below! 🚀</span>
-                    </div>
+Ready to level up? Choose your path below! 🚀</p>
                     <span class="timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     
                     <!-- Welcome message buttons -->
@@ -560,33 +552,11 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
             renderMessages();
         }
 
-        // Handle link click
-        function handleLinkClick(url) {
-            window.open(url, '_blank');
-        }
-
-        // Render message content with gold links
-        function renderMessageContent(content) {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const parts = content.split(urlRegex);
-            
-            let html = '';
-            parts.forEach((part, index) => {
-                if (urlRegex.test(part)) {
-                    html += \`<button class="gold-link-button" onclick="handleLinkClick('\${part}')">
-                        <span class="gold-link-text">\${part}</span>
-                    </button>\`;
-                } else {
-                    html += \`<span class="message-text">\${part}</span>\`;
-                }
-            });
-            return html;
-        }
-
         // Render all messages
         function renderMessages() {
             const messagesList = document.getElementById('messages-list');
             messagesList.innerHTML = messages.map((message, index) => {
+                const hasLinks = message.content && message.content.includes('https://');
                 let buttonsHtml = '';
                 
                 if (message.hasButtons) {
@@ -599,12 +569,16 @@ Use code: CRYPTO2024 for 25% off! 🚀\`
                     \`;
                 }
                 
+                const messageContent = hasLinks ? 
+                    \`<div class="message-content gold-shimmer">
+                        <p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>
+                    </div>\` : 
+                    \`<p class="message-text \${message.type === 'sent' ? 'sent-text' : 'received-text'}">\${message.content}</p>\`;
+                
                 return \`
                     <div class="message-container \${message.type === 'sent' ? 'sent-message' : 'received-message'}">
                         <div class="message-bubble \${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}">
-                            <div class="message-content">
-                                \${renderMessageContent(message.content)}
-                            </div>
+                            \${messageContent}
                             <span class="timestamp">\${message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             \${buttonsHtml}
                         </div>
