@@ -11,7 +11,8 @@ import {
     KeyboardAvoidingView, 
     Platform,
     Alert,
-    ActivityIndicator
+    ActivityIndicator,
+    Linking
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -29,7 +30,6 @@ const ChatInterface = ({ userId, username = 'User' }) => {
     const scaleAnim = new Animated.Value(0.8);
     const rocketAnim = new Animated.Value(0);
     const choiceContainerAnim = new Animated.Value(0);
-    const goldShimmerAnim = new Animated.Value(0);
     
     const flatListRef = useRef(null);
     const wsRef = useRef(null);
@@ -44,9 +44,6 @@ const ChatInterface = ({ userId, username = 'User' }) => {
         // Connect to WebSocket
         connectWebSocket();
         
-        // Start gold shimmer animation
-        startGoldShimmer();
-        
         return () => {
             if (wsRef.current) {
                 wsRef.current.close();
@@ -56,23 +53,6 @@ const ChatInterface = ({ userId, username = 'User' }) => {
             }
         };
     }, [userId]);
-
-    const startGoldShimmer = () => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(goldShimmerAnim, {
-                    toValue: 1,
-                    duration: 2000,
-                    useNativeDriver: false,
-                }),
-                Animated.timing(goldShimmerAnim, {
-                    toValue: 0,
-                    duration: 2000,
-                    useNativeDriver: false,
-                })
-            ])
-        ).start();
-    };
 
     const initializeChat = () => {
         const welcomeMessage = {
@@ -292,85 +272,84 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         }
     };
 
-    const renderMessage = ({ item }) => {
-        // Check if message contains links for gold shimmer effect
-        const hasLinks = item.content && item.content.includes('https://');
-        
-        return (
-            <View style={[
-                styles.messageContainer,
-                item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
-            ]}>
-                <View style={[
-                    styles.messageBubble,
-                    item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
-                ]}>
-                    {hasLinks ? (
-                        <Animated.View style={[
-                            styles.messageContent,
-                            {
-                                borderWidth: 2,
-                                borderColor: goldShimmerAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: ['rgba(255, 215, 0, 0.3)', 'rgba(255, 215, 0, 0.8)']
-                                }),
-                                borderRadius: 12,
-                                padding: 8,
-                                backgroundColor: goldShimmerAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: ['rgba(255, 215, 0, 0.05)', 'rgba(255, 215, 0, 0.15)']
-                                })
-                            }
-                        ]}>
-                            <Text style={[
-                                styles.messageText,
-                                item.type === 'sent' ? styles.sentText : styles.receivedText
-                            ]}>
-                                {item.content}
-                            </Text>
-                        </Animated.View>
-                    ) : (
-                        <Text style={[
-                            styles.messageText,
-                            item.type === 'sent' ? styles.sentText : styles.receivedText
-                        ]}>
-                            {item.content}
-                        </Text>
-                    )}
-                    <Text style={styles.timestamp}>
-                        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    
-                    {/* Welcome message buttons */}
-                    {item.hasButtons && (
-                        <View style={styles.welcomeButtonsContainer}>
-                            <TouchableOpacity
-                                style={styles.welcomeButton}
-                                onPress={handleWelcomeButtonPress}
-                                activeOpacity={0.8}
-                            >
-                                <Animated.Text 
-                                    style={[
-                                        styles.welcomeButtonText,
-                                        {
-                                            transform: [{
-                                                scale: rocketAnim.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [1, 1.2]
-                                                })
-                                            }]
-                                        }
-                                    ]}
-                                >
-                                    🚀 Get Started
-                                </Animated.Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-            </View>
-        );
+    const handleLinkPress = (url) => {
+        Linking.openURL(url);
     };
+
+    const renderMessageContent = (content) => {
+        // Split content by URLs and render each part
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = content.split(urlRegex);
+        
+        return parts.map((part, index) => {
+            if (urlRegex.test(part)) {
+                return (
+                    <TouchableOpacity
+                        key={index}
+                        style={styles.goldLinkButton}
+                        onPress={() => handleLinkPress(part)}
+                        activeOpacity={0.8}
+                    >
+                        <Animated.View style={styles.goldLinkContainer}>
+                            <Text style={styles.goldLinkText}>{part}</Text>
+                        </Animated.View>
+                    </TouchableOpacity>
+                );
+            } else {
+                return (
+                    <Text key={index} style={styles.messageText}>
+                        {part}
+                    </Text>
+                );
+            }
+        });
+    };
+
+    const renderMessage = ({ item }) => (
+        <View style={[
+            styles.messageContainer,
+            item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
+        ]}>
+            <View style={[
+                styles.messageBubble,
+                item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
+            ]}>
+                <View style={styles.messageContent}>
+                    {renderMessageContent(item.content)}
+                </View>
+                <Text style={styles.timestamp}>
+                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                
+                {/* Welcome message buttons */}
+                {item.hasButtons && (
+                    <View style={styles.welcomeButtonsContainer}>
+                        <TouchableOpacity
+                            style={styles.welcomeButton}
+                            onPress={handleWelcomeButtonPress}
+                            activeOpacity={0.8}
+                        >
+                            <Animated.Text 
+                                style={[
+                                    styles.welcomeButtonText,
+                                    {
+                                        transform: [{
+                                            scale: rocketAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 1.2]
+                                            })
+                                        }]
+                                    }
+                                ]}
+                            >
+                                🚀 Get Started
+                            </Animated.Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
+        </View>
+    );
 
     if (isLoading) {
         return (
@@ -489,13 +468,13 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#f0f2f5',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#f0f2f5',
     },
     loadingText: {
         marginTop: 10,
@@ -510,6 +489,11 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e9ecef',
         flexDirection: 'row',
         alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
     headerInfo: {
         flex: 1,
@@ -532,7 +516,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     messageContainer: {
-        marginVertical: 5,
+        marginVertical: 4,
         flexDirection: 'row',
     },
     sentMessage: {
@@ -542,61 +526,87 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     messageBubble: {
-        maxWidth: '80%',
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        borderRadius: 20,
+        maxWidth: '75%',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 18,
     },
     sentBubble: {
-        backgroundColor: 'rgba(102, 126, 234, 0.9)', // More transparent
-        borderBottomRightRadius: 5,
+        backgroundColor: '#0084ff',
+        borderBottomRightRadius: 4,
     },
     receivedBubble: {
         backgroundColor: 'white',
-        borderBottomLeftRadius: 5,
+        borderBottomLeftRadius: 4,
         borderWidth: 1,
         borderColor: '#e9ecef',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+        elevation: 1,
     },
     messageContent: {
-        // Container for messages with gold shimmer effect
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'flex-start',
     },
     messageText: {
         fontSize: 16,
-        lineHeight: 22,
-    },
-    sentText: {
-        color: 'white',
-    },
-    receivedText: {
+        lineHeight: 20,
         color: '#1a1a1a',
     },
     timestamp: {
-        fontSize: 12,
+        fontSize: 11,
         color: '#999',
-        marginTop: 5,
+        marginTop: 4,
         alignSelf: 'flex-end',
+        opacity: 0.7,
+    },
+    goldLinkButton: {
+        marginVertical: 2,
+        marginHorizontal: 1,
+    },
+    goldLinkContainer: {
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 215, 0, 0.6)',
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        shadowColor: '#ffd700',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    goldLinkText: {
+        fontSize: 14,
+        color: '#1a1a1a',
+        textDecorationLine: 'underline',
+        fontWeight: '500',
     },
     welcomeButtonsContainer: {
-        marginTop: 15,
+        marginTop: 12,
         alignItems: 'center',
     },
     welcomeButton: {
-        backgroundColor: '#667eea',
+        backgroundColor: '#0084ff',
         paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 25,
+        paddingVertical: 10,
+        borderRadius: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: 2,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowRadius: 4,
+        elevation: 3,
     },
     welcomeButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600',
     },
     choiceButtonsOverlay: {
@@ -668,7 +678,7 @@ const styles = StyleSheet.create({
     },
     textInput: {
         flex: 1,
-        backgroundColor: '#f8f9fa',
+        backgroundColor: '#f0f2f5',
         borderRadius: 20,
         paddingHorizontal: 15,
         paddingVertical: 10,
@@ -679,7 +689,7 @@ const styles = StyleSheet.create({
         borderColor: '#e9ecef',
     },
     sendButton: {
-        backgroundColor: '#667eea',
+        backgroundColor: '#0084ff',
         borderRadius: 20,
         paddingHorizontal: 20,
         paddingVertical: 10,

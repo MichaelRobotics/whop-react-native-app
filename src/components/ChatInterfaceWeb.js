@@ -235,6 +235,36 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         }
     };
 
+    const handleLinkClick = (url) => {
+        window.open(url, '_blank');
+    };
+
+    const renderMessageContent = (content) => {
+        // Split content by URLs and render each part
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = content.split(urlRegex);
+        
+        return parts.map((part, index) => {
+            if (urlRegex.test(part)) {
+                return (
+                    <button
+                        key={index}
+                        className="gold-link-button"
+                        onClick={() => handleLinkClick(part)}
+                    >
+                        <span className="gold-link-text">{part}</span>
+                    </button>
+                );
+            } else {
+                return (
+                    <span key={index} className="message-text">
+                        {part}
+                    </span>
+                );
+            }
+        });
+    };
+
     if (isLoading) {
         return (
             <div className="loading-container">
@@ -258,45 +288,33 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
             {/* Messages */}
             <div className="messages-list">
-                {messages.map((message) => {
-                    const hasLinks = message.content && message.content.includes('https://');
-                    
-                    return (
-                        <div 
-                            key={message.id} 
-                            className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
-                        >
-                            <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
-                                {hasLinks ? (
-                                    <div className="message-content gold-shimmer">
-                                        <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
-                                            {message.content}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
-                                        {message.content}
-                                    </p>
-                                )}
-                                <span className="timestamp">
-                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                                
-                                {/* Welcome message buttons */}
-                                {message.hasButtons && (
-                                    <div className="welcome-buttons-container">
-                                        <button
-                                            className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
-                                            onClick={handleWelcomeButtonPress}
-                                        >
-                                            🚀 Get Started
-                                        </button>
-                                    </div>
-                                )}
+                {messages.map((message) => (
+                    <div 
+                        key={message.id} 
+                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
+                    >
+                        <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
+                            <div className="message-content">
+                                {renderMessageContent(message.content)}
                             </div>
+                            <span className="timestamp">
+                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            
+                            {/* Welcome message buttons */}
+                            {message.hasButtons && (
+                                <div className="welcome-buttons-container">
+                                    <button
+                                        className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
+                                        onClick={handleWelcomeButtonPress}
+                                    >
+                                        🚀 Get Started
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                    );
-                })}
+                    </div>
+                ))}
                 <div ref={messagesEndRef} />
             </div>
 
@@ -368,7 +386,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     display: flex;
                     flex-direction: column;
                     height: 100vh;
-                    background-color: #f8f9fa;
+                    background-color: #f0f2f5;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
 
@@ -378,14 +396,14 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     justify-content: center;
                     align-items: center;
                     height: 100vh;
-                    background-color: #f8f9fa;
+                    background-color: #f0f2f5;
                 }
 
                 .loading-spinner {
                     width: 40px;
                     height: 40px;
                     border: 4px solid #e9ecef;
-                    border-top: 4px solid #667eea;
+                    border-top: 4px solid #0084ff;
                     border-radius: 50%;
                     animation: spin 1s linear infinite;
                 }
@@ -407,6 +425,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     border-bottom: 1px solid #e9ecef;
                     display: flex;
                     align-items: center;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                 }
 
                 .header-info {
@@ -433,7 +452,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 }
 
                 .message-container {
-                    margin: 5px 0;
+                    margin: 4px 0;
                     display: flex;
                 }
 
@@ -446,42 +465,66 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 }
 
                 .message-bubble {
-                    max-width: 80%;
-                    padding: 10px 15px;
-                    border-radius: 20px;
+                    max-width: 75%;
+                    padding: 8px 12px;
+                    border-radius: 18px;
                     position: relative;
                 }
 
                 .sent-bubble {
-                    background-color: rgba(102, 126, 234, 0.9); /* More transparent */
-                    border-bottom-right-radius: 5px;
+                    background-color: #0084ff;
+                    border-bottom-right-radius: 4px;
                 }
 
                 .received-bubble {
                     background-color: white;
-                    border-bottom-left-radius: 5px;
+                    border-bottom-left-radius: 4px;
                     border: 1px solid #e9ecef;
+                    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
                 }
 
                 .message-content {
-                    border-radius: 12px;
-                    padding: 8px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: flex-start;
+                }
+
+                .message-text {
+                    font-size: 16px;
+                    line-height: 20px;
+                    color: #1a1a1a;
+                }
+
+                .sent-bubble .message-text {
+                    color: white;
+                }
+
+                .gold-link-button {
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin: 2px 1px;
+                    cursor: pointer;
+                    display: inline-block;
+                }
+
+                .gold-link-text {
+                    background-color: rgba(255, 215, 0, 0.1);
+                    border: 1px solid rgba(255, 215, 0, 0.6);
+                    border-radius: 8px;
+                    padding: 4px 8px;
+                    font-size: 14px;
+                    color: #1a1a1a;
+                    text-decoration: underline;
+                    font-weight: 500;
+                    display: inline-block;
+                    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+                    animation: goldShimmer 4s ease-in-out infinite;
                     position: relative;
                     overflow: hidden;
                 }
 
-                .gold-shimmer {
-                    border: 2px solid rgba(255, 215, 0, 0.3);
-                    background: linear-gradient(
-                        45deg,
-                        rgba(255, 215, 0, 0.05) 0%,
-                        rgba(255, 215, 0, 0.15) 50%,
-                        rgba(255, 215, 0, 0.05) 100%
-                    );
-                    animation: goldShimmer 4s ease-in-out infinite;
-                }
-
-                .gold-shimmer::before {
+                .gold-link-text::before {
                     content: '';
                     position: absolute;
                     top: 0;
@@ -499,12 +542,12 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
                 @keyframes goldShimmer {
                     0%, 100% {
-                        border-color: rgba(255, 215, 0, 0.3);
-                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+                        border-color: rgba(255, 215, 0, 0.6);
+                        box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
                     }
                     50% {
-                        border-color: rgba(255, 215, 0, 0.8);
-                        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+                        border-color: rgba(255, 215, 0, 0.9);
+                        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
                     }
                 }
 
@@ -517,49 +560,35 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     }
                 }
 
-                .message-text {
-                    font-size: 16px;
-                    line-height: 22px;
-                    margin: 0;
-                    white-space: pre-wrap;
-                }
-
-                .sent-text {
-                    color: white;
-                }
-
-                .received-text {
-                    color: #1a1a1a;
-                }
-
                 .timestamp {
-                    font-size: 12px;
+                    font-size: 11px;
                     color: #999;
-                    margin-top: 5px;
+                    margin-top: 4px;
                     display: block;
                     text-align: right;
+                    opacity: 0.7;
                 }
 
                 .welcome-buttons-container {
-                    margin-top: 15px;
+                    margin-top: 12px;
                     text-align: center;
                 }
 
                 .welcome-button {
-                    background-color: #667eea;
+                    background-color: #0084ff;
                     color: white;
                     border: none;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    font-size: 16px;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    font-size: 15px;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.3s ease;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 }
 
                 .welcome-button:hover {
-                    background-color: #5a6fd8;
+                    background-color: #0073e6;
                     transform: translateY(-2px);
                 }
 
@@ -665,7 +694,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
                 .text-input {
                     flex: 1;
-                    background-color: #f8f9fa;
+                    background-color: #f0f2f5;
                     border: 1px solid #e9ecef;
                     border-radius: 20px;
                     padding: 10px 15px;
@@ -677,11 +706,11 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
                 .text-input:focus {
                     outline: none;
-                    border-color: #667eea;
+                    border-color: #0084ff;
                 }
 
                 .send-button {
-                    background-color: #667eea;
+                    background-color: #0084ff;
                     color: white;
                     border: none;
                     border-radius: 20px;
@@ -693,7 +722,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 }
 
                 .send-button:hover:not(.send-button-disabled) {
-                    background-color: #5a6fd8;
+                    background-color: #0073e6;
                 }
 
                 .send-button-disabled {
