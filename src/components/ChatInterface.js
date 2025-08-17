@@ -13,6 +13,7 @@ import {
     Alert,
     ActivityIndicator
 } from 'react-native';
+import config, { getApiUrl } from '../config/environment';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,31 +22,51 @@ const ChatInterface = ({ userId, username = 'User' }) => {
     const [inputText, setInputText] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [showChoiceButtons, setShowChoiceButtons] = useState(false);
-    
     // Animation values
     const slideAnim = new Animated.Value(-width);
     const fadeAnim = new Animated.Value(0);
     const scaleAnim = new Animated.Value(0.8);
     const rocketAnim = new Animated.Value(0);
-    const choiceContainerAnim = new Animated.Value(0);
     const goldShimmerAnim = new Animated.Value(0);
+    const buttonSwirlAnim1 = new Animated.Value(0);
+    const buttonSwirlAnim2 = new Animated.Value(0);
+    const buttonSwirlAnim3 = new Animated.Value(0);
     
     const flatListRef = useRef(null);
     const wsRef = useRef(null);
     const reconnectTimeoutRef = useRef(null);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            console.warn('⚠️ No userId provided to ChatInterface');
+            return;
+        }
 
-        // Initialize chat with welcome message
-        initializeChat();
-        
-        // Connect to WebSocket
-        connectWebSocket();
-        
-        // Start gold shimmer animation
-        startGoldShimmer();
+        // Initialize all animations first
+        const initializeAnimations = async () => {
+            try {
+                console.log('🎬 Initializing animations...');
+                
+                // Start gold shimmer animation
+                startGoldShimmer();
+                
+                // Small delay to ensure animations are ready
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Initialize chat with welcome message
+                initializeChat();
+                
+                // Connect to WebSocket
+                connectWebSocket();
+            } catch (error) {
+                console.error('❌ Error initializing animations:', error);
+                // Fallback: just initialize chat without animations
+                initializeChat();
+                connectWebSocket();
+            }
+        };
+
+        initializeAnimations();
         
         return () => {
             if (wsRef.current) {
@@ -55,23 +76,65 @@ const ChatInterface = ({ userId, username = 'User' }) => {
                 clearTimeout(reconnectTimeoutRef.current);
             }
         };
-    }, [userId]);
+    }, []); // Remove userId dependency to prevent infinite re-renders
 
     const startGoldShimmer = () => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(goldShimmerAnim, {
+        try {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(goldShimmerAnim, {
+                        toValue: 1,
+                        duration: config.GOLD_SHIMMER_DURATION,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(goldShimmerAnim, {
+                        toValue: 0,
+                        duration: config.GOLD_SHIMMER_DURATION,
+                        useNativeDriver: false,
+                    })
+                ])
+            ).start();
+        } catch (error) {
+            console.error('❌ Error starting gold shimmer animation:', error);
+        }
+    };
+
+    const startButtonSwirlSequence = () => {
+        try {
+            // Start swirling animation sequence for buttons
+            setTimeout(() => {
+                Animated.timing(buttonSwirlAnim1, {
                     toValue: 1,
-                    duration: 2000,
+                    duration: 800,
                     useNativeDriver: false,
-                }),
-                Animated.timing(goldShimmerAnim, {
-                    toValue: 0,
-                    duration: 2000,
+                }).start();
+            }, 200);
+
+            setTimeout(() => {
+                Animated.timing(buttonSwirlAnim2, {
+                    toValue: 1,
+                    duration: 800,
                     useNativeDriver: false,
-                })
-            ])
-        ).start();
+                }).start();
+            }, 600);
+
+            setTimeout(() => {
+                Animated.timing(buttonSwirlAnim3, {
+                    toValue: 1,
+                    duration: 800,
+                    useNativeDriver: false,
+                }).start();
+            }, 1000);
+
+            // Reset animations after sequence
+            setTimeout(() => {
+                buttonSwirlAnim1.setValue(0);
+                buttonSwirlAnim2.setValue(0);
+                buttonSwirlAnim3.setValue(0);
+            }, 2000);
+        } catch (error) {
+            console.error('❌ Error starting button swirl sequence:', error);
+        }
     };
 
     const initializeChat = () => {
@@ -199,50 +262,61 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         };
 
         setMessages(prev => [...prev, response]);
-    };
-
-    const handleWelcomeButtonPress = () => {
-        // Rocket launch animation
-        Animated.sequence([
-            Animated.timing(rocketAnim, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }),
-            Animated.timing(rocketAnim, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: true,
-            })
-        ]).start();
-
-        // Show choice buttons with animation
-        setTimeout(() => {
-            setShowChoiceButtons(true);
-            Animated.timing(choiceContainerAnim, {
-                toValue: 1,
-                duration: 500,
-                useNativeDriver: true,
-            }).start();
-        }, 300);
-
-        // Scroll to bottom
+        
+        // Auto-scroll to the affiliate response
         setTimeout(() => {
             flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
     };
 
-    const handleChoiceButtonPress = async (button) => {
-        // Hide choice buttons with animation
-        Animated.timing(choiceContainerAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setShowChoiceButtons(false);
-        });
+    const handleWelcomeButtonPress = () => {
+        // Enhanced rocket launch animation
+        Animated.sequence([
+            // Scale up with bounce
+            Animated.timing(rocketAnim, {
+                toValue: 1,
+                duration: config.ROCKET_ANIMATION_DURATION,
+                useNativeDriver: true,
+            }),
+            // Scale down
+            Animated.timing(rocketAnim, {
+                toValue: 0.8,
+                duration: config.ROCKET_ANIMATION_DURATION * 0.75,
+                useNativeDriver: true,
+            }),
+            // Final scale
+            Animated.timing(rocketAnim, {
+                toValue: 0,
+                duration: config.ROCKET_ANIMATION_DURATION * 0.5,
+                useNativeDriver: true,
+            })
+        ]).start();
 
-        // Add user's choice as a single message
+        // Add a message with choice buttons
+        const choiceMessage = {
+            id: Date.now().toString(),
+            type: 'sent',
+            content: 'I want to get started!',
+            timestamp: new Date(),
+            sender: username,
+            hasChoiceButtons: true // New flag for choice buttons
+        };
+
+        setMessages(prev => [...prev, choiceMessage]);
+
+        // Scroll to bottom
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+
+        // Start button swirl sequence after a short delay
+        setTimeout(() => {
+            startButtonSwirlSequence();
+        }, 300);
+    };
+
+    const handleChoiceButtonPress = async (button) => {
+        // Add user's choice as a message
         const userChoice = {
             id: Date.now().toString(),
             type: 'sent',
@@ -269,7 +343,8 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
     const sendChoiceToServer = async (button) => {
         try {
-            const response = await fetch('/api/button-response', {
+            const apiUrl = getApiUrl('/api/button-response');
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -355,8 +430,8 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                                         {
                                             transform: [{
                                                 scale: rocketAnim.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [1, 1.2]
+                                                    inputRange: [0, 0.8, 1],
+                                                    outputRange: [1, 1.3, 1.1]
                                                 })
                                             }]
                                         }
@@ -365,6 +440,122 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                                     🚀 Get Started
                                 </Animated.Text>
                             </TouchableOpacity>
+                        </View>
+                    )}
+
+                    {/* Choice buttons for messages with hasChoiceButtons */}
+                    {item.hasChoiceButtons && (
+                        <View style={styles.choiceButtonsContainer}>
+                            <Animated.View style={[
+                                styles.choiceButtonWrapper,
+                                {
+                                    borderWidth: 2,
+                                    borderColor: buttonSwirlAnim1.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#667eea', '#667eea']
+                                    }),
+                                    borderRadius: 12,
+                                    shadowColor: buttonSwirlAnim1.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#667eea', '#667eea']
+                                    }),
+                                    shadowOpacity: buttonSwirlAnim1.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.1, 0.8]
+                                    }),
+                                    shadowRadius: buttonSwirlAnim1.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [4, 12]
+                                    }),
+                                    elevation: buttonSwirlAnim1.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [2, 8]
+                                    }),
+                                }
+                            ]}>
+                                <TouchableOpacity
+                                    style={[styles.choiceButton, { borderColor: 'transparent' }]}
+                                    onPress={() => handleChoiceButtonPress({ id: 'dropshipping' })}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonIcon}>🛍️</Text>
+                                    <Text style={styles.choiceButtonText}>Dropshipping</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
+                            
+                            <Animated.View style={[
+                                styles.choiceButtonWrapper,
+                                {
+                                    borderWidth: 2,
+                                    borderColor: buttonSwirlAnim2.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#764ba2', '#764ba2']
+                                    }),
+                                    borderRadius: 12,
+                                    shadowColor: buttonSwirlAnim2.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#764ba2', '#764ba2']
+                                    }),
+                                    shadowOpacity: buttonSwirlAnim2.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.1, 0.8]
+                                    }),
+                                    shadowRadius: buttonSwirlAnim2.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [4, 12]
+                                    }),
+                                    elevation: buttonSwirlAnim2.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [2, 8]
+                                    }),
+                                }
+                            ]}>
+                                <TouchableOpacity
+                                    style={[styles.choiceButton, { borderColor: 'transparent' }]}
+                                    onPress={() => handleChoiceButtonPress({ id: 'sports' })}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonIcon}>🏆</Text>
+                                    <Text style={styles.choiceButtonText}>Sports</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
+                            
+                            <Animated.View style={[
+                                styles.choiceButtonWrapper,
+                                {
+                                    borderWidth: 2,
+                                    borderColor: buttonSwirlAnim3.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#f093fb', '#f093fb']
+                                    }),
+                                    borderRadius: 12,
+                                    shadowColor: buttonSwirlAnim3.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ['#f093fb', '#f093fb']
+                                    }),
+                                    shadowOpacity: buttonSwirlAnim3.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0.1, 0.8]
+                                    }),
+                                    shadowRadius: buttonSwirlAnim3.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [4, 12]
+                                    }),
+                                    elevation: buttonSwirlAnim3.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [2, 8]
+                                    }),
+                                }
+                            ]}>
+                                <TouchableOpacity
+                                    style={[styles.choiceButton, { borderColor: 'transparent' }]}
+                                    onPress={() => handleChoiceButtonPress({ id: 'crypto' })}
+                                    activeOpacity={0.8}
+                                >
+                                    <Text style={styles.choiceButtonIcon}>💰</Text>
+                                    <Text style={styles.choiceButtonText}>Crypto</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
                         </View>
                     )}
                 </View>
@@ -407,62 +598,6 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* Choice Buttons Container - Separate from messages */}
-            {showChoiceButtons && (
-                <Animated.View 
-                    style={[
-                        styles.choiceButtonsOverlay,
-                        {
-                            opacity: choiceContainerAnim,
-                            transform: [{
-                                translateY: choiceContainerAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [50, 0]
-                                })
-                            }]
-                        }
-                    ]}
-                >
-                    <View style={styles.choiceButtonsContainer}>
-                        <TouchableOpacity
-                            style={[styles.choiceButton, { borderColor: '#667eea' }]}
-                            onPress={() => handleChoiceButtonPress({ id: 'dropshipping' })}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonIcon}>🛍️</Text>
-                            <View style={styles.choiceButtonContent}>
-                                <Text style={styles.choiceButtonText}>🛍️ Dropshipping!</Text>
-                                <Text style={styles.choiceButtonDescription}>Learn how to start your own online store</Text>
-                            </View>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                            style={[styles.choiceButton, { borderColor: '#764ba2' }]}
-                            onPress={() => handleChoiceButtonPress({ id: 'sports' })}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonIcon}>🏆</Text>
-                            <View style={styles.choiceButtonContent}>
-                                <Text style={styles.choiceButtonText}>🏆 Sports!</Text>
-                                <Text style={styles.choiceButtonDescription}>Master sports betting and analysis</Text>
-                            </View>
-                        </TouchableOpacity>
-                        
-                        <TouchableOpacity
-                            style={[styles.choiceButton, { borderColor: '#f093fb' }]}
-                            onPress={() => handleChoiceButtonPress({ id: 'crypto' })}
-                            activeOpacity={0.8}
-                        >
-                            <Text style={styles.choiceButtonIcon}>💰</Text>
-                            <View style={styles.choiceButtonContent}>
-                                <Text style={styles.choiceButtonText}>💰 Crypto!</Text>
-                                <Text style={styles.choiceButtonDescription}>Dive into cryptocurrency trading</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-                </Animated.View>
-            )}
-
             {/* Input */}
             <View style={styles.inputContainer}>
                 <TextInput
@@ -472,7 +607,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     placeholder="Type a message..."
                     placeholderTextColor="#999"
                     multiline
-                    maxLength={1000}
+                    maxLength={config.MAX_MESSAGE_LENGTH}
                 />
                 <TouchableOpacity 
                     style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
@@ -542,7 +677,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     messageBubble: {
-        maxWidth: '80%',
+        maxWidth: config.CHAT_BUBBLE_MAX_WIDTH,
         paddingHorizontal: 15,
         paddingVertical: 10,
         borderRadius: 20,
@@ -607,55 +742,40 @@ const styles = StyleSheet.create({
         zIndex: 1000,
     },
     choiceButtonsContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 20,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 8,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 24,
-        elevation: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
-        gap: 12,
+        flexDirection: 'column',
+        marginTop: 10,
+        gap: 8,
+    },
+    choiceButtonWrapper: {
+        // Container for animated border and shadow effects
     },
     choiceButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 16,
+        padding: 12,
+        borderRadius: 12,
         backgroundColor: 'white',
-        borderWidth: 2,
+        borderWidth: 0, // Border moved to wrapper
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 3,
+            height: 2,
         },
-        shadowOpacity: 0.15,
-        shadowRadius: 6,
-        elevation: 3,
-        minHeight: 60,
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        minHeight: 50,
+        justifyContent: 'flex-start',
     },
     choiceButtonIcon: {
-        fontSize: 22,
+        fontSize: 20,
         marginRight: 12,
     },
-    choiceButtonContent: {
-        flex: 1,
-    },
     choiceButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1a1a1a',
-        marginBottom: 3,
-    },
-    choiceButtonDescription: {
         fontSize: 14,
-        color: '#666',
-        lineHeight: 16,
+        fontWeight: '600',
+        color: '#1a1a1a',
+        textAlign: 'center',
     },
     inputContainer: {
         flexDirection: 'row',

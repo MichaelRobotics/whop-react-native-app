@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import config from '../config/environment';
 
 const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) => {
     const [isConnected, setIsConnected] = useState(false);
@@ -10,7 +11,10 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
     const heartbeatIntervalRef = useRef(null);
 
     useEffect(() => {
-        if (!userId || !appId) return;
+        if (!userId || !appId) {
+            console.warn('⚠️ WebSocket client missing required props:', { userId, appId });
+            return;
+        }
 
         connectWebSocket();
         
@@ -21,62 +25,71 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
 
     const connectWebSocket = () => {
         try {
-            console.log('🔌 Connecting to Whop WebSocket...');
+            console.log('🔌 Connecting to Whop WebSocket...', { userId, appId });
             setConnectionStatus('connecting');
             
             // In a real implementation, you would connect to Whop's WebSocket
             // For now, we'll simulate the connection and messages
             setTimeout(() => {
-                setIsConnected(true);
-                setConnectionStatus('connected');
-                onConnectionChange?.(true);
-                
-                console.log('✅ WebSocket connected successfully');
-                
-                // Start heartbeat
-                startHeartbeat();
-                
-                // Simulate receiving interactive button data
-                setTimeout(() => {
-                    const simulatedMessage = {
-                        type: 'interactive_buttons',
-                        title: '🚀 Ready to Level Up?',
-                        subtitle: 'Choose your path to success:',
-                        buttons: [
-                            { 
-                                id: 'dropshipping', 
-                                text: '🛍️ Dropshipping!', 
-                                description: 'Learn how to start your own online store', 
-                                color: '#667eea', 
-                                icon: '🛍️' 
-                            },
-                            { 
-                                id: 'sports', 
-                                text: '🏆 Sports!', 
-                                description: 'Master sports betting and analysis', 
-                                color: '#764ba2', 
-                                icon: '🏆' 
-                            },
-                            { 
-                                id: 'crypto', 
-                                text: '💰 Crypto!', 
-                                description: 'Dive into cryptocurrency trading', 
-                                color: '#f093fb', 
-                                icon: '💰' 
-                            }
-                        ],
-                        animation: { type: 'slideIn', duration: 500, easing: 'easeOut' },
-                        styling: { 
-                            backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                            borderRadius: '12px', 
-                            padding: '20px', 
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.1)' 
-                        }
-                    };
+                try {
+                    setIsConnected(true);
+                    setConnectionStatus('connected');
+                    onConnectionChange?.(true);
                     
-                    onMessage?.(simulatedMessage);
-                }, 2000);
-                
+                    console.log('✅ WebSocket connected successfully');
+                    
+                    // Start heartbeat
+                    startHeartbeat();
+                    
+                    // Simulate receiving interactive button data
+                    setTimeout(() => {
+                        try {
+                            const simulatedMessage = {
+                                type: 'interactive_buttons',
+                                title: '🚀 Ready to Level Up?',
+                                subtitle: 'Choose your path to success:',
+                                buttons: [
+                                    { 
+                                        id: 'dropshipping', 
+                                        text: '🛍️ Dropshipping!', 
+                                        description: 'Learn how to start your own online store', 
+                                        color: '#667eea', 
+                                        icon: '🛍️' 
+                                    },
+                                    { 
+                                        id: 'sports', 
+                                        text: '🏆 Sports!', 
+                                        description: 'Master sports betting and analysis', 
+                                        color: '#764ba2', 
+                                        icon: '🏆' 
+                                    },
+                                    { 
+                                        id: 'crypto', 
+                                        text: '💰 Crypto!', 
+                                        description: 'Dive into cryptocurrency trading', 
+                                        color: '#f093fb', 
+                                        icon: '💰' 
+                                    }
+                                ],
+                                animation: { type: 'slideIn', duration: config.MESSAGE_ANIMATION_DURATION, easing: 'easeOut' },
+                                styling: { 
+                                    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                                    borderRadius: '12px', 
+                                    padding: '20px', 
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)' 
+                                }
+                            };
+                            
+                            onMessage?.(simulatedMessage);
+                        } catch (error) {
+                            console.error('❌ Error sending simulated message:', error);
+                        }
+                    }, 2000);
+                } catch (error) {
+                    console.error('❌ Error in WebSocket connection simulation:', error);
+                    setConnectionStatus('error');
+                    onConnectionChange?.(false);
+                }
             }, 1000);
             
         } catch (error) {
@@ -85,7 +98,7 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
             onConnectionChange?.(false);
             
             // Attempt to reconnect
-            reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+            reconnectTimeoutRef.current = setTimeout(connectWebSocket, config.WEBSOCKET_RECONNECT_INTERVAL);
         }
     };
 
@@ -117,7 +130,7 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
                 console.log('💓 WebSocket heartbeat');
                 // In real implementation, send ping message
             }
-        }, 30000);
+        }, config.WEBSOCKET_HEARTBEAT_INTERVAL);
     };
 
     const sendMessage = (message) => {

@@ -30,9 +30,10 @@ const htmlContent = `
             console.log('📱 App loaded in Whop iframe');
         } else {
             // We're not in an iframe - redirect to Whop
-            if (!window.location.search.includes('whop_user_id') && !window.location.search.includes('preview=true')) {
-                window.location.href = 'https://whop.com/apps/app_FInBMCJGyVdD9T';
-            }
+                    if (!window.location.search.includes('whop_user_id') && !window.location.search.includes('preview=true')) {
+            const appId = process.env.NEXT_PUBLIC_WHOP_APP_ID || 'your_app_id_here';
+            window.location.href = 'https://whop.com/apps/' + appId;
+        }
         }
     </script>
     <style>
@@ -126,7 +127,7 @@ const htmlContent = `
             border-bottom-left-radius: 5px;
             border: 1px solid #e9ecef;
         }
-
+        
         .message-content {
             border-radius: 12px;
             padding: 8px;
@@ -378,8 +379,8 @@ const htmlContent = `
                 <h2 class="header-title">Whop Owner</h2>
                 <p class="header-subtitle" id="connection-status">🟢 Online</p>
             </div>
-        </div>
-
+    </div>
+    
         <!-- Messages -->
         <div class="messages-list" id="messages-list">
             <div class="message-container received-message">
@@ -394,11 +395,11 @@ Ready to level up? Choose your path below! 🚀</p>
                         <button class="welcome-button" onclick="handleWelcomeButtonPress()">
                             🚀 Get Started
                         </button>
-                    </div>
+            </div>
                 </div>
             </div>
-        </div>
-
+                </div>
+                
         <!-- Choice Buttons Container - Separate from messages -->
         <div class="choice-buttons-overlay hidden" id="choice-buttons-overlay">
             <div class="choice-buttons-container">
@@ -421,7 +422,7 @@ Ready to level up? Choose your path below! 🚀</p>
                     <div class="choice-button-content">
                         <span class="choice-button-text">💰 Crypto!</span>
                         <span class="choice-button-description">Dive into cryptocurrency trading</span>
-                    </div>
+                </div>
                 </button>
             </div>
         </div>
@@ -665,7 +666,8 @@ app.get('/', (req, res) => {
         
         if (!isWhopRequest) {
             // Redirect unauthorized users to Whop
-            return res.redirect('https://whop.com/apps/app_FInBMCJGyVdD9T');
+            const appId = process.env.NEXT_PUBLIC_WHOP_APP_ID || 'your_app_id_here';
+            return res.redirect('https://whop.com/apps/' + appId);
         }
     }
     

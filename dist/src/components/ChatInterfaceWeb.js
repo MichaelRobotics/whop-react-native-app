@@ -228,36 +228,6 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         }
     };
 
-    const handleLinkClick = (url) => {
-        window.open(url, '_blank');
-    };
-
-    const renderMessageContent = (content) => {
-        // Split content by URLs and render each part
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        const parts = content.split(urlRegex);
-        
-        return parts.map((part, index) => {
-            if (urlRegex.test(part)) {
-                return (
-                    <button
-                        key={index}
-                        className="gold-link-button"
-                        onClick={() => handleLinkClick(part)}
-                    >
-                        <span className="gold-link-text">{part}</span>
-                    </button>
-                );
-            } else {
-                return (
-                    <span key={index} className="message-text">
-                        {part}
-                    </span>
-                );
-            }
-        });
-    };
-
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -288,33 +258,45 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
             {/* Messages */}
             <div className="messages-list">
-                {messages.map((message) => (
-                    <div 
-                        key={message.id} 
-                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
-                    >
-                        <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
-                            <div className="message-content">
-                                {renderMessageContent(message.content)}
+                {messages.map((message) => {
+                    const hasLinks = message.content && message.content.includes('https://');
+                    
+                    return (
+                        <div 
+                            key={message.id} 
+                            className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
+                        >
+                            <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
+                                {hasLinks ? (
+                                    <div className="message-content gold-shimmer">
+                                        <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
+                                            {message.content}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
+                                        {message.content}
+                                    </p>
+                                )}
+                                <span className="timestamp">
+                                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                
+                                {/* Welcome message buttons */}
+                                {message.hasButtons && (
+                                    <div className="welcome-buttons-container">
+                                        <button
+                                            className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
+                                            onClick={handleWelcomeButtonPress}
+                                        >
+                                            🚀 Get Started
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <span className="timestamp">
-                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                            
-                            {/* Welcome message buttons */}
-                            {message.hasButtons && (
-                                <div className="welcome-buttons-container">
-                                    <button
-                                        className={`welcome-button ${rocketAnim ? 'rocket-animate' : ''}`}
-                                        onClick={handleWelcomeButtonPress}
-                                    >
-                                        🚀 Get Started
-                                    </button>
-                                </div>
-                            )}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
                 <div ref={messagesEndRef} />
             </div>
 
@@ -482,45 +464,24 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 }
 
                 .message-content {
-                    display: flex;
-                    flex-wrap: wrap;
-                    align-items: flex-start;
+                    border-radius: 12px;
+                    padding: 8px;
+                    position: relative;
+                    overflow: hidden;
                 }
 
-                .message-text {
-                    font-size: 16px;
-                    line-height: 22px;
-                    color: #1a1a1a;
-                }
-
-                .sent-bubble .message-text {
-                    color: white;
-                }
-
-                .gold-link-button {
-                    background: none;
-                    border: none;
-                    padding: 0;
-                    margin: 2px 1px;
-                    cursor: pointer;
-                    display: inline-block;
-                }
-
-                .gold-link-text {
-                    background-color: rgba(255, 215, 0, 0.1);
-                    border: 1px solid rgba(255, 215, 0, 0.6);
-                    border-radius: 8px;
-                    padding: 4px 8px;
-                    font-size: 14px;
-                    color: #1a1a1a;
-                    text-decoration: underline;
-                    font-weight: 500;
-                    display: inline-block;
-                    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+                .gold-shimmer {
+                    border: 2px solid rgba(255, 215, 0, 0.3);
+                    background: linear-gradient(
+                        45deg,
+                        rgba(255, 215, 0, 0.05) 0%,
+                        rgba(255, 215, 0, 0.15) 50%,
+                        rgba(255, 215, 0, 0.05) 100%
+                    );
                     animation: goldShimmer 4s ease-in-out infinite;
                 }
 
-                .gold-link-text::before {
+                .gold-shimmer::before {
                     content: '';
                     position: absolute;
                     top: 0;
@@ -538,12 +499,12 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
                 @keyframes goldShimmer {
                     0%, 100% {
-                        border-color: rgba(255, 215, 0, 0.6);
-                        box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+                        border-color: rgba(255, 215, 0, 0.3);
+                        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
                     }
                     50% {
-                        border-color: rgba(255, 215, 0, 0.9);
-                        box-shadow: 0 4px 8px rgba(255, 215, 0, 0.5);
+                        border-color: rgba(255, 215, 0, 0.8);
+                        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
                     }
                 }
 
@@ -554,6 +515,21 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                     100% {
                         left: 100%;
                     }
+                }
+
+                .message-text {
+                    font-size: 16px;
+                    line-height: 22px;
+                    margin: 0;
+                    white-space: pre-wrap;
+                }
+
+                .sent-text {
+                    color: white;
+                }
+
+                .received-text {
+                    color: #1a1a1a;
                 }
 
                 .timestamp {

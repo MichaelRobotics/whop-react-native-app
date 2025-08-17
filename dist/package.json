@@ -1,49 +1,26 @@
 {
-	"name": "react-native-app",
-	"version": "0.0.1",
-	"scripts": {
-		"build": "node scripts/build-mobile.js",
-		"build:android": "node scripts/build-mobile.js --platform android",
-		"build:ios": "node scripts/build-mobile.js --platform ios",
-		"upload": "echo 'Upload functionality requires Whop CLI - use manual upload'",
-		"upload:android": "echo 'Upload functionality requires Whop CLI - use manual upload'",
-		"upload:ios": "echo 'Upload functionality requires Whop CLI - use manual upload'",
-		"clean": "rm -rf dist && echo '✅ Build directory cleaned'",
-		"ship": "npm run build && echo '✅ App built successfully! Ready for manual upload to Whop'",
-		"ship:android": "npm run build:android && echo '✅ Android app built successfully! Ready for manual upload to Whop'",
-		"ship:ios": "npm run build:ios && echo '✅ iOS app built successfully! Ready for manual upload to Whop'",
-		"dev": "npm run build && echo '✅ App built successfully! To test locally, you need to install it into your Whop app and use the Whop mobile app.'",
-		"dev:android": "npm run build:android && echo '✅ Android app built successfully!'",
-		"dev:ios": "npm run build:ios && echo '✅ iOS app built successfully!'",
-		"start": "node preview-server.js",
-		"vercel-build": "echo 'Vercel build completed'",
-		"test": "echo 'No tests specified'",
-		"lint": "echo 'No linting configured'"
-	},
-	"dependencies": {
-		"@whop/api": "^0.0.42",
-		"@whop/react": "^0.2.35",
-		"@whop/react-native": "^0.0.11",
-		"express": "^5.1.0",
-		"react": "19.1.0",
-		"react-native": "0.80.0"
-	},
-	"devDependencies": {
-		"@types/react": "19.1.5",
-		"find-up": "6.3.0",
-		"typescript": "5.8.3"
-	},
-	"engines": {
-		"node": ">=16.0.0",
-		"npm": ">=8.0.0"
-	},
-	"whop": {
-		"appId": "app_FInBMCJGyVdD9T",
-		"platforms": ["android", "ios", "web"],
-		"views": {
-			"discover": "./src/views/discover-view.tsx",
-			"experience": "./src/views/experience-view.tsx",
-			"lead-capture": "./src/views/lead-capture-view.tsx"
-		}
-	}
+  "name": "react-native-app",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "whop-react-native build",
+    "upload": "whop-react-native upload",
+    "clean": "whop-react-native clean",
+    "ship": "whop-react-native ship",
+    "dev": "whop-react-native build && echo '✅ App built successfully! To test locally, you need to install it into your Whop app and use the Whop mobile app.'",
+    "start": "node preview-server.js",
+    "vercel-build": "echo 'Vercel build completed'"
+  },
+  "dependencies": {
+    "@whop/api": "^0.0.42",
+    "@whop/react": "^0.2.35",
+    "@whop/react-native": "^0.0.11",
+    "express": "^5.1.0",
+    "react": "19.1.0",
+    "react-native": "0.80.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.5",
+    "find-up": "^7.0.0",
+    "typescript": "5.8.3"
+  }
 }
