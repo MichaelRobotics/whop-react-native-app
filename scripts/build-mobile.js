@@ -14,7 +14,8 @@ const config = {
     buildDir: './dist',
     views: {
         discover: './src/views/discover-view.tsx',
-        experience: './src/views/experience-view.tsx'
+        experience: './src/views/experience-view.tsx',
+        'lead-capture': './src/views/lead-capture-view.tsx'
     }
 };
 
@@ -120,15 +121,17 @@ function generateManifest() {
         appId: config.appId,
         name: 'Whop Chat App',
         version: '1.0.0',
-        description: 'Interactive chat app with affiliate marketing',
+        description: 'Interactive chat app with affiliate marketing and lead capture',
         platforms: config.platforms,
         buildDate: new Date().toISOString(),
+        views: Object.keys(config.views),
         features: [
             'Interactive Chat',
             'WebSocket Integration',
             'Automated Responses',
             'Affiliate Links',
-            'Gold Shimmer Animations'
+            'Gold Shimmer Animations',
+            'Lead Capture'
         ]
     };
     

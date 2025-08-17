@@ -42,7 +42,8 @@
 		"platforms": ["android", "ios", "web"],
 		"views": {
 			"discover": "./src/views/discover-view.tsx",
-			"experience": "./src/views/experience-view.tsx"
+			"experience": "./src/views/experience-view.tsx",
+			"lead-capture": "./src/views/lead-capture-view.tsx"
 		}
 	}
 }

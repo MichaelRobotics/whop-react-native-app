@@ -2,17 +2,23 @@
   "appId": "app_FInBMCJGyVdD9T",
   "name": "Whop Chat App",
   "version": "1.0.0",
-  "description": "Interactive chat app with affiliate marketing",
+  "description": "Interactive chat app with affiliate marketing and lead capture",
   "platforms": [
     "android",
     "ios"
   ],
-  "buildDate": "2025-08-17T01:25:59.706Z",
+  "buildDate": "2025-08-17T01:34:45.486Z",
+  "views": [
+    "discover",
+    "experience",
+    "lead-capture"
+  ],
   "features": [
     "Interactive Chat",
     "WebSocket Integration",
     "Automated Responses",
     "Affiliate Links",
-    "Gold Shimmer Animations"
+    "Gold Shimmer Animations",
+    "Lead Capture"
   ]
 }

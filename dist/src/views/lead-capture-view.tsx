@@ -1,7 +1,7 @@
 import type { ExperienceViewProps } from "@whop/react-native";
 import ChatInterface from "../components/ChatInterface";
 
-export function ExperienceView(props: ExperienceViewProps) {
+export function LeadCaptureView(props: ExperienceViewProps) {
 	// Extract user information from props
 	const userId = props.currentUserId;
 	const username = props.currentUserId || 'User';

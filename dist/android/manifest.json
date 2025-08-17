@@ -2,10 +2,11 @@
   "platform": "android",
   "appId": "app_FInBMCJGyVdD9T",
   "version": "1.0.0",
-  "buildDate": "2025-08-17T01:25:59.705Z",
+  "buildDate": "2025-08-17T01:34:45.485Z",
   "entryPoint": "./main.js",
   "views": {
     "discover": "./src/views/discover-view.tsx",
-    "experience": "./src/views/experience-view.tsx"
+    "experience": "./src/views/experience-view.tsx",
+    "lead-capture": "./src/views/lead-capture-view.tsx"
   }
 }
