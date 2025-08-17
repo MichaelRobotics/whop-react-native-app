@@ -28,8 +28,7 @@ const ChatInterface = ({ userId, username = 'User' }) => {
     const fadeAnim = new Animated.Value(0);
     const scaleAnim = new Animated.Value(0.8);
     const rocketAnim = new Animated.Value(0);
-    const messageSlideAnim = new Animated.Value(50);
-    const messageFadeAnim = new Animated.Value(0);
+    const choiceContainerAnim = new Animated.Value(0);
     
     const flatListRef = useRef(null);
     const wsRef = useRef(null);
@@ -227,25 +226,43 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
             })
         ]).start();
 
-        // Add user's "I want to:" message with smooth animation
+        // Add user's "I want to:" message
         const userChoice = {
             id: Date.now().toString(),
             type: 'sent',
             content: 'I want to:',
             timestamp: new Date(),
-            sender: username,
-            hasChoiceButtons: true // Flag to show choice buttons below this message
+            sender: username
         };
 
         setMessages(prev => [...prev, userChoice]);
 
-        // Smooth scroll to bottom
+        // Show choice buttons with animation
+        setTimeout(() => {
+            setShowChoiceButtons(true);
+            Animated.timing(choiceContainerAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+            }).start();
+        }, 300);
+
+        // Scroll to bottom
         setTimeout(() => {
             flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
     };
 
     const handleChoiceButtonPress = async (button) => {
+        // Hide choice buttons with animation
+        Animated.timing(choiceContainerAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setShowChoiceButtons(false);
+        });
+
         // Add user's choice as a sent message
         const userChoice = {
             id: Date.now().toString(),
@@ -296,122 +313,54 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
         }
     };
 
-    const renderMessage = ({ item, index }) => {
-        // Animation for new messages
-        const messageSlideAnim = new Animated.Value(50);
-        const messageFadeAnim = new Animated.Value(0);
-
-        useEffect(() => {
-            Animated.parallel([
-                Animated.timing(messageSlideAnim, {
-                    toValue: 0,
-                    duration: 400,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(messageFadeAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    useNativeDriver: true,
-                })
-            ]).start();
-        }, []);
-
-        return (
-            <Animated.View 
-                style={[
-                    styles.messageContainer,
-                    item.type === 'sent' ? styles.sentMessage : styles.receivedMessage,
-                    {
-                        transform: [{ translateY: messageSlideAnim }],
-                        opacity: messageFadeAnim,
-                    }
-                ]}
-            >
-                <View style={[
-                    styles.messageBubble,
-                    item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
+    const renderMessage = ({ item }) => (
+        <View style={[
+            styles.messageContainer,
+            item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
+        ]}>
+            <View style={[
+                styles.messageBubble,
+                item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
+            ]}>
+                <Text style={[
+                    styles.messageText,
+                    item.type === 'sent' ? styles.sentText : styles.receivedText
                 ]}>
-                    <Text style={[
-                        styles.messageText,
-                        item.type === 'sent' ? styles.sentText : styles.receivedText
-                    ]}>
-                        {item.content}
-                    </Text>
-                    <Text style={styles.timestamp}>
-                        {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    
-                    {/* Welcome message buttons */}
-                    {item.hasButtons && (
-                        <View style={styles.welcomeButtonsContainer}>
-                            <TouchableOpacity
-                                style={styles.welcomeButton}
-                                onPress={handleWelcomeButtonPress}
-                                activeOpacity={0.8}
+                    {item.content}
+                </Text>
+                <Text style={styles.timestamp}>
+                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                
+                {/* Welcome message buttons */}
+                {item.hasButtons && (
+                    <View style={styles.welcomeButtonsContainer}>
+                        <TouchableOpacity
+                            style={styles.welcomeButton}
+                            onPress={handleWelcomeButtonPress}
+                            activeOpacity={0.8}
+                        >
+                            <Animated.Text 
+                                style={[
+                                    styles.welcomeButtonText,
+                                    {
+                                        transform: [{
+                                            scale: rocketAnim.interpolate({
+                                                inputRange: [0, 1],
+                                                outputRange: [1, 1.2]
+                                            })
+                                        }]
+                                    }
+                                ]}
                             >
-                                <Animated.Text 
-                                    style={[
-                                        styles.welcomeButtonText,
-                                        {
-                                            transform: [{
-                                                scale: rocketAnim.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [1, 1.2]
-                                                })
-                                            }]
-                                        }
-                                    ]}
-                                >
-                                    🚀 Get Started
-                                </Animated.Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {/* Choice buttons for "I want to:" message */}
-                    {item.hasChoiceButtons && (
-                        <View style={styles.choiceButtonsContainer}>
-                            <TouchableOpacity
-                                style={[styles.choiceButton, { backgroundColor: '#667eea' }]}
-                                onPress={() => handleChoiceButtonPress({ id: 'dropshipping' })}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceButtonIcon}>🛍️</Text>
-                                <View style={styles.choiceButtonContent}>
-                                    <Text style={styles.choiceButtonText}>🛍️ Dropshipping!</Text>
-                                    <Text style={styles.choiceButtonDescription}>Learn how to start your own online store</Text>
-                                </View>
-                            </TouchableOpacity>
-                            
-                            <TouchableOpacity
-                                style={[styles.choiceButton, { backgroundColor: '#764ba2' }]}
-                                onPress={() => handleChoiceButtonPress({ id: 'sports' })}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceButtonIcon}>🏆</Text>
-                                <View style={styles.choiceButtonContent}>
-                                    <Text style={styles.choiceButtonText}>🏆 Sports!</Text>
-                                    <Text style={styles.choiceButtonDescription}>Master sports betting and analysis</Text>
-                                </View>
-                            </TouchableOpacity>
-                            
-                            <TouchableOpacity
-                                style={[styles.choiceButton, { backgroundColor: '#f093fb' }]}
-                                onPress={() => handleChoiceButtonPress({ id: 'crypto' })}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.choiceButtonIcon}>💰</Text>
-                                <View style={styles.choiceButtonContent}>
-                                    <Text style={styles.choiceButtonText}>💰 Crypto!</Text>
-                                    <Text style={styles.choiceButtonDescription}>Dive into cryptocurrency trading</Text>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-            </Animated.View>
-        );
-    };
+                                🚀 Get Started
+                            </Animated.Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
+        </View>
+    );
 
     if (isLoading) {
         return (
@@ -447,6 +396,62 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 contentContainerStyle={styles.messagesContent}
                 showsVerticalScrollIndicator={false}
             />
+
+            {/* Choice Buttons Container - Separate from messages */}
+            {showChoiceButtons && (
+                <Animated.View 
+                    style={[
+                        styles.choiceButtonsOverlay,
+                        {
+                            opacity: choiceContainerAnim,
+                            transform: [{
+                                translateY: choiceContainerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [50, 0]
+                                })
+                            }]
+                        }
+                    ]}
+                >
+                    <View style={styles.choiceButtonsContainer}>
+                        <TouchableOpacity
+                            style={[styles.choiceButton, { backgroundColor: '#667eea' }]}
+                            onPress={() => handleChoiceButtonPress({ id: 'dropshipping' })}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.choiceButtonIcon}>🛍️</Text>
+                            <View style={styles.choiceButtonContent}>
+                                <Text style={styles.choiceButtonText}>🛍️ Dropshipping!</Text>
+                                <Text style={styles.choiceButtonDescription}>Learn how to start your own online store</Text>
+                            </View>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                            style={[styles.choiceButton, { backgroundColor: '#764ba2' }]}
+                            onPress={() => handleChoiceButtonPress({ id: 'sports' })}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.choiceButtonIcon}>🏆</Text>
+                            <View style={styles.choiceButtonContent}>
+                                <Text style={styles.choiceButtonText}>🏆 Sports!</Text>
+                                <Text style={styles.choiceButtonDescription}>Master sports betting and analysis</Text>
+                            </View>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                            style={[styles.choiceButton, { backgroundColor: '#f093fb' }]}
+                            onPress={() => handleChoiceButtonPress({ id: 'crypto' })}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.choiceButtonIcon}>💰</Text>
+                            <View style={styles.choiceButtonContent}>
+                                <Text style={styles.choiceButtonText}>💰 Crypto!</Text>
+                                <Text style={styles.choiceButtonDescription}>Dive into cryptocurrency trading</Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            )}
 
             {/* Input */}
             <View style={styles.inputContainer}>
@@ -581,15 +586,34 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
+    choiceButtonsOverlay: {
+        position: 'absolute',
+        bottom: 80,
+        left: 20,
+        right: 20,
+        zIndex: 1000,
+    },
     choiceButtonsContainer: {
-        marginTop: 15,
-        gap: 12, // Increased gap for larger buttons
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        borderRadius: 20,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 8,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 24,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+        gap: 12,
     },
     choiceButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16, // Increased padding for larger buttons
-        borderRadius: 16, // Increased border radius
+        padding: 16,
+        borderRadius: 16,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
@@ -598,23 +622,23 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.15,
         shadowRadius: 6,
         elevation: 3,
-        minHeight: 60, // Minimum height for larger buttons
+        minHeight: 60,
     },
     choiceButtonIcon: {
-        fontSize: 22, // Larger icon
+        fontSize: 22,
         marginRight: 12,
     },
     choiceButtonContent: {
         flex: 1,
     },
     choiceButtonText: {
-        fontSize: 16, // Larger text
+        fontSize: 16,
         fontWeight: 'bold',
         color: 'white',
         marginBottom: 3,
     },
     choiceButtonDescription: {
-        fontSize: 14, // Larger description
+        fontSize: 14,
         color: 'rgba(255,255,255,0.9)',
         lineHeight: 16,
     },

@@ -5,6 +5,7 @@ const ChatInterfaceWeb = ({ userId, username = 'User' }) => {
     const [inputText, setInputText] = useState('');
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [showChoiceButtons, setShowChoiceButtons] = useState(false);
     const [rocketAnim, setRocketAnim] = useState(false);
     
     const messagesEndRef = useRef(null);
@@ -199,11 +200,15 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
             type: 'sent',
             content: 'I want to:',
             timestamp: new Date(),
-            sender: username,
-            hasChoiceButtons: true // Flag to show choice buttons below this message
+            sender: username
         };
 
         setMessages(prev => [...prev, userChoice]);
+
+        // Show choice buttons with animation
+        setTimeout(() => {
+            setShowChoiceButtons(true);
+        }, 300);
 
         // Scroll to bottom
         setTimeout(() => {
@@ -212,6 +217,9 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
     };
 
     const handleChoiceButtonPress = async (button) => {
+        // Hide choice buttons
+        setShowChoiceButtons(false);
+
         // Add user's choice as a sent message
         const userChoice = {
             id: Date.now().toString(),
@@ -292,13 +300,10 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
 
             {/* Messages */}
             <div className="messages-list">
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                     <div 
                         key={message.id} 
-                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'} message-animate`}
-                        style={{
-                            animationDelay: `${index * 0.1}s`
-                        }}
+                        className={`message-container ${message.type === 'sent' ? 'sent-message' : 'received-message'}`}
                     >
                         <div className={`message-bubble ${message.type === 'sent' ? 'sent-bubble' : 'received-bubble'}`}>
                             <p className={`message-text ${message.type === 'sent' ? 'sent-text' : 'received-text'}`}>
@@ -319,52 +324,54 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                                     </button>
                                 </div>
                             )}
-
-                            {/* Choice buttons for "I want to:" message */}
-                            {message.hasChoiceButtons && (
-                                <div className="choice-buttons-container">
-                                    <button
-                                        className="choice-button"
-                                        style={{ backgroundColor: '#667eea' }}
-                                        onClick={() => handleChoiceButtonPress({ id: 'dropshipping' })}
-                                    >
-                                        <span className="choice-button-icon">🛍️</span>
-                                        <div className="choice-button-content">
-                                            <span className="choice-button-text">🛍️ Dropshipping!</span>
-                                            <span className="choice-button-description">Learn how to start your own online store</span>
-                                        </div>
-                                    </button>
-                                    
-                                    <button
-                                        className="choice-button"
-                                        style={{ backgroundColor: '#764ba2' }}
-                                        onClick={() => handleChoiceButtonPress({ id: 'sports' })}
-                                    >
-                                        <span className="choice-button-icon">🏆</span>
-                                        <div className="choice-button-content">
-                                            <span className="choice-button-text">🏆 Sports!</span>
-                                            <span className="choice-button-description">Master sports betting and analysis</span>
-                                        </div>
-                                    </button>
-                                    
-                                    <button
-                                        className="choice-button"
-                                        style={{ backgroundColor: '#f093fb' }}
-                                        onClick={() => handleChoiceButtonPress({ id: 'crypto' })}
-                                    >
-                                        <span className="choice-button-icon">💰</span>
-                                        <div className="choice-button-content">
-                                            <span className="choice-button-text">💰 Crypto!</span>
-                                            <span className="choice-button-description">Dive into cryptocurrency trading</span>
-                                        </div>
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
             </div>
+
+            {/* Choice Buttons Container - Separate from messages */}
+            {showChoiceButtons && (
+                <div className="choice-buttons-overlay choice-buttons-animate">
+                    <div className="choice-buttons-container">
+                        <button
+                            className="choice-button"
+                            style={{ backgroundColor: '#667eea' }}
+                            onClick={() => handleChoiceButtonPress({ id: 'dropshipping' })}
+                        >
+                            <span className="choice-button-icon">🛍️</span>
+                            <div className="choice-button-content">
+                                <span className="choice-button-text">🛍️ Dropshipping!</span>
+                                <span className="choice-button-description">Learn how to start your own online store</span>
+                            </div>
+                        </button>
+                        
+                        <button
+                            className="choice-button"
+                            style={{ backgroundColor: '#764ba2' }}
+                            onClick={() => handleChoiceButtonPress({ id: 'sports' })}
+                        >
+                            <span className="choice-button-icon">🏆</span>
+                            <div className="choice-button-content">
+                                <span className="choice-button-text">🏆 Sports!</span>
+                                <span className="choice-button-description">Master sports betting and analysis</span>
+                            </div>
+                        </button>
+                        
+                        <button
+                            className="choice-button"
+                            style={{ backgroundColor: '#f093fb' }}
+                            onClick={() => handleChoiceButtonPress({ id: 'crypto' })}
+                        >
+                            <span className="choice-button-icon">💰</span>
+                            <div className="choice-button-content">
+                                <span className="choice-button-text">💰 Crypto!</span>
+                                <span className="choice-button-description">Dive into cryptocurrency trading</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Input */}
             <div className="input-container">
@@ -458,16 +465,6 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 .message-container {
                     margin: 5px 0;
                     display: flex;
-                    opacity: 0;
-                    transform: translateY(20px);
-                    animation: messageSlideIn 0.5s ease-out forwards;
-                }
-
-                @keyframes messageSlideIn {
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
                 }
 
                 .sent-message {
@@ -552,23 +549,50 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                     100% { transform: scale(1); }
                 }
 
+                .choice-buttons-overlay {
+                    position: absolute;
+                    bottom: 80px;
+                    left: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                }
+
+                .choice-buttons-animate {
+                    animation: choiceButtonsSlideIn 0.5s ease-out;
+                }
+
+                @keyframes choiceButtonsSlideIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(50px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
                 .choice-buttons-container {
-                    margin-top: 15px;
+                    background-color: rgba(255, 255, 255, 0.95);
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+                    border: 1px solid rgba(0,0,0,0.05);
                     display: flex;
                     flex-direction: column;
-                    gap: 12px; /* Increased gap for larger buttons */
+                    gap: 12px;
                 }
 
                 .choice-button {
                     display: flex;
                     align-items: center;
-                    padding: 16px; /* Increased padding for larger buttons */
-                    border-radius: 16px; /* Increased border radius */
+                    padding: 16px;
+                    border-radius: 16px;
                     border: none;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-                    min-height: 60px; /* Minimum height for larger buttons */
+                    min-height: 60px;
                 }
 
                 .choice-button:hover {
@@ -581,7 +605,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                 }
 
                 .choice-button-icon {
-                    font-size: 22px; /* Larger icon */
+                    font-size: 22px;
                     margin-right: 12px;
                 }
 
@@ -592,7 +616,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
 
                 .choice-button-text {
                     display: block;
-                    font-size: 16px; /* Larger text */
+                    font-size: 16px;
                     font-weight: bold;
                     color: white;
                     margin-bottom: 3px;
@@ -600,7 +624,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
 
                 .choice-button-description {
                     display: block;
-                    font-size: 14px; /* Larger description */
+                    font-size: 14px;
                     color: rgba(255,255,255,0.9);
                     line-height: 16px;
                 }
