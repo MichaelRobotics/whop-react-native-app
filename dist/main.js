@@ -1,8 +1,7 @@
 
-// Whop React Native App Bundle
-// Generated: 2025-08-17T01:34:45.484Z
+// Main App Bundle
+// Generated: 2025-08-17T01:41:13.974Z
 
-// Import main app
 import App from '../src/App.js';
 
 // Export for Whop platform

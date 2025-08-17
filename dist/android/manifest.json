@@ -2,8 +2,9 @@
   "platform": "android",
   "appId": "app_FInBMCJGyVdD9T",
   "version": "1.0.0",
-  "buildDate": "2025-08-17T01:34:45.485Z",
-  "entryPoint": "./main.js",
+  "buildDate": "2025-08-17T01:41:13.976Z",
+  "entryPoint": "./index.js",
+  "mainComponent": "WhopChatApp",
   "views": {
     "discover": "./src/views/discover-view.tsx",
     "experience": "./src/views/experience-view.tsx",

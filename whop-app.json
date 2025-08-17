@@ -3,18 +3,14 @@
   "name": "Whop Chat App",
   "version": "1.0.0",
   "description": "Interactive chat app with affiliate marketing and lead capture",
-  "platforms": [
-    "android",
-    "ios"
-  ],
-  "buildDate": "2025-08-17T01:41:13.976Z",
   "entryPoint": "./index.js",
   "mainComponent": "WhopChatApp",
-  "views": [
-    "discover",
-    "experience",
-    "lead-capture"
-  ],
+  "platforms": ["android", "ios", "web"],
+  "views": {
+    "discover": "./src/views/discover-view.tsx",
+    "experience": "./src/views/experience-view.tsx",
+    "lead-capture": "./src/views/lead-capture-view.tsx"
+  },
   "features": [
     "Interactive Chat",
     "WebSocket Integration",
@@ -22,5 +18,11 @@
     "Affiliate Links",
     "Gold Shimmer Animations",
     "Lead Capture"
-  ]
+  ],
+  "dependencies": {
+    "@whop/react-native": "^0.0.11",
+    "@whop/api": "^0.0.42",
+    "react": "19.1.0",
+    "react-native": "0.80.0"
+  }
 }

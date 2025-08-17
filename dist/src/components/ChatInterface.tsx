@@ -12,7 +12,6 @@ import {
     KeyboardAvoidingView,
     Platform
 } from 'react-native';
-import { useWhopSdk } from '@whop/react-native';
 
 interface ChatInterfaceProps {
     userId: string;
@@ -48,8 +47,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, username = 'User'
     const flatListRef = useRef<FlatList<Message>>(null);
     const inputRef = useRef<TextInput>(null);
 
-    // Get Whop SDK instance
-    const whopSdk = useWhopSdk();
+    // Try to get Whop SDK instance (optional)
+    let whopSdk = null;
+    try {
+        const { useWhopSdk } = require('@whop/react-native');
+        whopSdk = useWhopSdk();
+    } catch (error) {
+        console.log('⚠️ Whop SDK not available in ChatInterface, using fallback mode');
+    }
 
     useEffect(() => {
         if (!userId) return;

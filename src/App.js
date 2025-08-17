@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, StatusBar, SafeAreaView, Text } from 'react-native';
-import { useWhopSdk } from '@whop/react-native';
 import ChatInterface from './components/ChatInterface';
 import WhopWebSocketClient from './components/WhopWebSocketClient';
 
 const App = () => {
-    const [userId, setUserId] = useState(null);
-    const [username, setUsername] = useState(null);
-    const [appId, setAppId] = useState(process.env.NEXT_PUBLIC_WHOP_APP_ID);
+    const [userId, setUserId] = useState('user_L8YwhuixVcRCf'); // Default test user
+    const [username, setUsername] = useState('TestUser');
+    const [appId, setAppId] = useState(process.env.NEXT_PUBLIC_WHOP_APP_ID || 'app_FInBMCJGyVdD9T');
     const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false); // Start as false to show chat immediately
 
-    // Get Whop SDK instance
-    const whopSdk = useWhopSdk();
+    // Try to get Whop SDK instance (optional)
+    let whopSdk = null;
+    try {
+        const { useWhopSdk } = require('@whop/react-native');
+        whopSdk = useWhopSdk();
+    } catch (error) {
+        console.log('⚠️ Whop SDK not available, using fallback mode');
+    }
 
     useEffect(() => {
-        // Initialize user data from Whop SDK
+        // Initialize user data from Whop SDK if available
         const initializeUser = async () => {
             try {
                 if (whopSdk) {
@@ -27,12 +32,12 @@ const App = () => {
                         console.log('✅ User authenticated:', { id: user.id, username: user.username });
                     } else {
                         console.log('⚠️ No user found, using fallback values');
-                        setUserId('user_L8YwhuixVcRCf'); // Fallback for development
+                        setUserId('user_L8YwhuixVcRCf');
                         setUsername('TestUser');
                     }
                 } else {
                     console.log('⚠️ Whop SDK not available, using fallback values');
-                    setUserId('user_L8YwhuixVcRCf'); // Fallback for development
+                    setUserId('user_L8YwhuixVcRCf');
                     setUsername('TestUser');
                 }
                 setIsLoading(false);

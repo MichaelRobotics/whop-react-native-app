@@ -72,22 +72,43 @@ function validateEnvironment() {
 }
 
 async function bundleCode() {
-    // Create a simple bundle for React Native
+    // Create the main bundle entry point
     const bundleContent = `
 // Whop React Native App Bundle
 // Generated: ${new Date().toISOString()}
 
-// Import main app
+import { AppRegistry } from 'react-native';
+import App from '../src/App';
+
+// Register the main app component
+AppRegistry.registerComponent('WhopChatApp', () => App);
+
+// Export the main app for Whop platform
+export default App;
+    `;
+    
+    fs.writeFileSync(path.join(config.buildDir, 'index.js'), bundleContent);
+    
+    // Create a simple bundle for React Native
+    const mainBundleContent = `
+// Main App Bundle
+// Generated: ${new Date().toISOString()}
+
 import App from '../src/App.js';
 
 // Export for Whop platform
 export default App;
     `;
     
-    fs.writeFileSync(path.join(config.buildDir, 'main.js'), bundleContent);
+    fs.writeFileSync(path.join(config.buildDir, 'main.js'), mainBundleContent);
     
     // Copy source files
     copyDirectory(config.sourceDir, path.join(config.buildDir, 'src'));
+    
+    // Copy configuration files
+    copyFileIfExists('./index.js', path.join(config.buildDir, 'index.js'));
+    copyFileIfExists('./react-native.config.js', path.join(config.buildDir, 'react-native.config.js'));
+    copyFileIfExists('./package.json', path.join(config.buildDir, 'package.json'));
 }
 
 async function buildPlatform(platform) {
@@ -104,7 +125,8 @@ async function buildPlatform(platform) {
         appId: config.appId,
         version: '1.0.0',
         buildDate: new Date().toISOString(),
-        entryPoint: './main.js',
+        entryPoint: './index.js',
+        mainComponent: 'WhopChatApp',
         views: config.views
     };
     
@@ -124,6 +146,8 @@ function generateManifest() {
         description: 'Interactive chat app with affiliate marketing and lead capture',
         platforms: config.platforms,
         buildDate: new Date().toISOString(),
+        entryPoint: './index.js',
+        mainComponent: 'WhopChatApp',
         views: Object.keys(config.views),
         features: [
             'Interactive Chat',
@@ -157,6 +181,13 @@ function copyDirectory(src, dest) {
         } else {
             fs.copyFileSync(srcPath, destPath);
         }
+    }
+}
+
+function copyFileIfExists(src, dest) {
+    if (fs.existsSync(src)) {
+        fs.copyFileSync(src, dest);
+        console.log(`📋 Copied ${src} to ${dest}`);
     }
 }
 
