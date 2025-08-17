@@ -35,18 +35,9 @@ const ChatInterfaceWeb = ({ userId, username = 'User' }) => {
         const welcomeMessage = {
             id: 'welcome-1',
             type: 'received',
-            content: `🎉 Welcome to our community, ${username}! 
+            content: `🎉 Welcome ${username}! 
 
-Thank you for joining us! I'm excited to have you on board.
-
-Here's what you can expect:
-• Access to exclusive content
-• Community discussions
-• Regular updates and new features
-
-If you have any questions, feel free to reach out to me directly.
-
-Welcome aboard! 🚀`,
+Ready to level up? Choose your path below! 🚀`,
             timestamp: new Date(),
             sender: 'Whop Owner',
             hasButtons: true // Flag to show buttons below this message
@@ -121,14 +112,7 @@ Welcome aboard! 🚀`,
             const defaultResponse = {
                 id: Date.now().toString(),
                 type: 'received',
-                content: `Thanks for your message! I'm here to help you succeed. 
-
-If you're interested in learning more, you can reply with:
-• "Dropshipping" - for e-commerce resources
-• "Sports" - for sports betting & analysis
-• "Crypto" - for cryptocurrency trading
-
-What interests you most? 🚀`,
+                content: `Thanks! Reply with "dropshipping", "sports", or "crypto" to get started! 🚀`,
                 timestamp: new Date(),
                 sender: 'Whop Owner'
             };
@@ -138,44 +122,29 @@ What interests you most? 🚀`,
 
     const sendAutomatedResponse = (option) => {
         const responses = {
-            'dropshipping': `🎯 Perfect choice, ${username}! 
+            'dropshipping': `🎯 Perfect! Here's your dropshipping starter pack:
 
-Dropshipping is one of the fastest ways to start an online business with minimal investment.
+📚 Free Course: https://your-affiliate-link.com/dropshipping-course
+🛒 Shopify Trial: https://your-affiliate-link.com/shopify-trial
+📊 Research Tool: https://your-affiliate-link.com/research-tool
 
-Here's your exclusive starter pack:
-• 📚 Free Dropshipping Course: https://your-affiliate-link.com/dropshipping-course
-• 🛒 Shopify 14-Day Trial: https://your-affiliate-link.com/shopify-trial
-• 📊 Product Research Tool: https://your-affiliate-link.com/research-tool
+Use code: DROPSHIP2024 for 20% off! 🚀`,
 
-Use promo code: DROPSHIP2024 for 20% off!
+            'sports': `🏆 Excellent choice! Here's your sports package:
 
-Ready to start your dropshipping journey? Let me know if you need help! 🚀`,
+📊 Analytics: https://your-affiliate-link.com/sports-analytics
+🎯 Strategy Guide: https://your-affiliate-link.com/betting-guide
+📱 Mobile App: https://your-affiliate-link.com/sports-app
 
-            'sports': `🏆 Excellent choice, ${username}! 
+Use code: SPORTS2024 for 15% off! 💪`,
 
-Sports betting and analysis can be incredibly profitable when done right.
+            'crypto': `💰 Smart choice! Here's your crypto starter kit:
 
-Here's your exclusive sports package:
-• 📊 Sports Analytics Platform: https://your-affiliate-link.com/sports-analytics
-• 🎯 Betting Strategy Guide: https://your-affiliate-link.com/betting-guide
-• 📱 Mobile App Access: https://your-affiliate-link.com/sports-app
+📈 Trading Platform: https://your-affiliate-link.com/crypto-exchange
+🎓 Education Course: https://your-affiliate-link.com/crypto-course
+🔒 Hardware Wallet: https://your-affiliate-link.com/hardware-wallet
 
-Use promo code: SPORTS2024 for 15% off!
-
-Want to learn more about sports analysis? I'm here to help! 💪`,
-
-            'crypto': `💰 Smart choice, ${username}! 
-
-Cryptocurrency is the future of finance and there's never been a better time to get started.
-
-Here's your exclusive crypto starter kit:
-• 📈 Trading Platform: https://your-affiliate-link.com/crypto-exchange
-• 🎓 Crypto Education Course: https://your-affiliate-link.com/crypto-course
-• 🔒 Hardware Wallet: https://your-affiliate-link.com/hardware-wallet
-
-Use promo code: CRYPTO2024 for 25% off!
-
-Ready to dive into the crypto world? Let's make it happen! 🚀`
+Use code: CRYPTO2024 for 25% off! 🚀`
         };
 
         const response = {
@@ -194,17 +163,6 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
         setRocketAnim(true);
         setTimeout(() => setRocketAnim(false), 500);
 
-        // Add user's "I want to:" message
-        const userChoice = {
-            id: Date.now().toString(),
-            type: 'sent',
-            content: 'I want to:',
-            timestamp: new Date(),
-            sender: username
-        };
-
-        setMessages(prev => [...prev, userChoice]);
-
         // Show choice buttons with animation
         setTimeout(() => {
             setShowChoiceButtons(true);
@@ -220,7 +178,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
         // Hide choice buttons
         setShowChoiceButtons(false);
 
-        // Add user's choice as a sent message
+        // Add user's choice as a single message
         const userChoice = {
             id: Date.now().toString(),
             type: 'sent',
@@ -336,7 +294,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                     <div className="choice-buttons-container">
                         <button
                             className="choice-button"
-                            style={{ backgroundColor: '#667eea' }}
+                            style={{ borderColor: '#667eea' }}
                             onClick={() => handleChoiceButtonPress({ id: 'dropshipping' })}
                         >
                             <span className="choice-button-icon">🛍️</span>
@@ -348,7 +306,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                         
                         <button
                             className="choice-button"
-                            style={{ backgroundColor: '#764ba2' }}
+                            style={{ borderColor: '#764ba2' }}
                             onClick={() => handleChoiceButtonPress({ id: 'sports' })}
                         >
                             <span className="choice-button-icon">🏆</span>
@@ -360,7 +318,7 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                         
                         <button
                             className="choice-button"
-                            style={{ backgroundColor: '#f093fb' }}
+                            style={{ borderColor: '#f093fb' }}
                             onClick={() => handleChoiceButtonPress({ id: 'crypto' })}
                         >
                             <span className="choice-button-icon">💰</span>
@@ -588,7 +546,8 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                     align-items: center;
                     padding: 16px;
                     border-radius: 16px;
-                    border: none;
+                    border: 2px solid;
+                    background-color: white;
                     cursor: pointer;
                     transition: all 0.3s ease;
                     box-shadow: 0 3px 12px rgba(0,0,0,0.15);
@@ -618,14 +577,14 @@ Ready to dive into the crypto world? Let's make it happen! 🚀`
                     display: block;
                     font-size: 16px;
                     font-weight: bold;
-                    color: white;
+                    color: #1a1a1a;
                     margin-bottom: 3px;
                 }
 
                 .choice-button-description {
                     display: block;
                     font-size: 14px;
-                    color: rgba(255,255,255,0.9);
+                    color: #666;
                     line-height: 16px;
                 }
 
