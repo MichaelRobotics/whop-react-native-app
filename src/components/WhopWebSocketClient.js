@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useWhopSdk } from '@whop/react-native';
 
 const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) => {
     const [isConnected, setIsConnected] = useState(false);
@@ -10,9 +9,6 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
     const reconnectTimeoutRef = useRef(null);
     const heartbeatIntervalRef = useRef(null);
 
-    // Get Whop SDK instance
-    const whopSdk = useWhopSdk();
-
     useEffect(() => {
         if (!userId || !appId) return;
 
@@ -21,103 +17,67 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
         return () => {
             disconnectWebSocket();
         };
-    }, [userId, appId, whopSdk]);
+    }, [userId, appId]);
 
-    const connectWebSocket = async () => {
+    const connectWebSocket = () => {
         try {
             console.log('🔌 Connecting to Whop WebSocket...');
             setConnectionStatus('connecting');
             
-            if (whopSdk) {
-                // Use real Whop WebSocket connection
-                const connection = await whopSdk.connectWebSocket({
-                    userId: userId,
-                    appId: appId,
-                    onMessage: (message) => {
-                        console.log('📨 Real WebSocket message received:', message);
-                        onMessage?.(message);
-                    },
-                    onConnect: () => {
-                        console.log('✅ Real WebSocket connected successfully');
-                        setIsConnected(true);
-                        setConnectionStatus('connected');
-                        onConnectionChange?.(true);
-                        startHeartbeat();
-                    },
-                    onDisconnect: () => {
-                        console.log('🔌 Real WebSocket disconnected');
-                        setIsConnected(false);
-                        setConnectionStatus('disconnected');
-                        onConnectionChange?.(false);
-                        stopHeartbeat();
-                        
-                        // Attempt to reconnect
-                        reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
-                    },
-                    onError: (error) => {
-                        console.error('❌ Real WebSocket error:', error);
-                        setConnectionStatus('error');
-                        onConnectionChange?.(false);
-                    }
-                });
+            // In a real implementation, you would connect to Whop's WebSocket
+            // For now, we'll simulate the connection and messages
+            setTimeout(() => {
+                setIsConnected(true);
+                setConnectionStatus('connected');
+                onConnectionChange?.(true);
                 
-                wsRef.current = connection;
-            } else {
-                // Fallback to simulated connection for development
-                console.log('⚠️ Whop SDK not available, using simulated WebSocket');
+                console.log('✅ WebSocket connected successfully');
+                
+                // Start heartbeat
+                startHeartbeat();
+                
+                // Simulate receiving interactive button data
                 setTimeout(() => {
-                    setIsConnected(true);
-                    setConnectionStatus('connected');
-                    onConnectionChange?.(true);
-                    
-                    console.log('✅ Simulated WebSocket connected successfully');
-                    
-                    // Start heartbeat
-                    startHeartbeat();
-                    
-                    // Simulate receiving interactive button data
-                    setTimeout(() => {
-                        const simulatedMessage = {
-                            type: 'interactive_buttons',
-                            title: '🚀 Ready to Level Up?',
-                            subtitle: 'Choose your path to success:',
-                            buttons: [
-                                { 
-                                    id: 'dropshipping', 
-                                    text: '🛍️ Dropshipping!', 
-                                    description: 'Learn how to start your own online store', 
-                                    color: '#667eea', 
-                                    icon: '🛍️' 
-                                },
-                                { 
-                                    id: 'sports', 
-                                    text: '🏆 Sports!', 
-                                    description: 'Master sports betting and analysis', 
-                                    color: '#764ba2', 
-                                    icon: '🏆' 
-                                },
-                                { 
-                                    id: 'crypto', 
-                                    text: '💰 Crypto!', 
-                                    description: 'Dive into cryptocurrency trading', 
-                                    color: '#f093fb', 
-                                    icon: '💰' 
-                                }
-                            ],
-                            animation: { type: 'slideIn', duration: 500, easing: 'easeOut' },
-                            styling: { 
-                                backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-                                borderRadius: '12px', 
-                                padding: '20px', 
-                                boxShadow: '0 4px 15px rgba(0,0,0,0.1)' 
+                    const simulatedMessage = {
+                        type: 'interactive_buttons',
+                        title: '🚀 Ready to Level Up?',
+                        subtitle: 'Choose your path to success:',
+                        buttons: [
+                            { 
+                                id: 'dropshipping', 
+                                text: '🛍️ Dropshipping!', 
+                                description: 'Learn how to start your own online store', 
+                                color: '#667eea', 
+                                icon: '🛍️' 
+                            },
+                            { 
+                                id: 'sports', 
+                                text: '🏆 Sports!', 
+                                description: 'Master sports betting and analysis', 
+                                color: '#764ba2', 
+                                icon: '🏆' 
+                            },
+                            { 
+                                id: 'crypto', 
+                                text: '💰 Crypto!', 
+                                description: 'Dive into cryptocurrency trading', 
+                                color: '#f093fb', 
+                                icon: '💰' 
                             }
-                        };
-                        
-                        onMessage?.(simulatedMessage);
-                    }, 2000);
+                        ],
+                        animation: { type: 'slideIn', duration: 500, easing: 'easeOut' },
+                        styling: { 
+                            backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                            borderRadius: '12px', 
+                            padding: '20px', 
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.1)' 
+                        }
+                    };
                     
-                }, 1000);
-            }
+                    onMessage?.(simulatedMessage);
+                }, 2000);
+                
+            }, 1000);
             
         } catch (error) {
             console.error('❌ WebSocket connection failed:', error);
@@ -131,9 +91,7 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
 
     const disconnectWebSocket = () => {
         if (wsRef.current) {
-            if (typeof wsRef.current.close === 'function') {
-                wsRef.current.close();
-            }
+            wsRef.current.close();
             wsRef.current = null;
         }
         
@@ -142,7 +100,10 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
             reconnectTimeoutRef.current = null;
         }
         
-        stopHeartbeat();
+        if (heartbeatIntervalRef.current) {
+            clearInterval(heartbeatIntervalRef.current);
+            heartbeatIntervalRef.current = null;
+        }
         
         setIsConnected(false);
         setConnectionStatus('disconnected');
@@ -152,21 +113,11 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
     const startHeartbeat = () => {
         // Send heartbeat every 30 seconds to keep connection alive
         heartbeatIntervalRef.current = setInterval(() => {
-            if (isConnected && wsRef.current) {
+            if (isConnected) {
                 console.log('💓 WebSocket heartbeat');
-                // Send ping message if available
-                if (typeof wsRef.current.ping === 'function') {
-                    wsRef.current.ping();
-                }
+                // In real implementation, send ping message
             }
         }, 30000);
-    };
-
-    const stopHeartbeat = () => {
-        if (heartbeatIntervalRef.current) {
-            clearInterval(heartbeatIntervalRef.current);
-            heartbeatIntervalRef.current = null;
-        }
     };
 
     const sendMessage = (message) => {
@@ -177,14 +128,8 @@ const WhopWebSocketClient = ({ userId, appId, onMessage, onConnectionChange }) =
         
         try {
             console.log('📤 Sending WebSocket message:', message);
-            
-            if (wsRef.current && typeof wsRef.current.send === 'function') {
-                wsRef.current.send(message);
-                return true;
-            } else {
-                console.warn('⚠️ WebSocket send method not available');
-                return false;
-            }
+            // In real implementation, send via WebSocket
+            return true;
         } catch (error) {
             console.error('❌ Error sending WebSocket message:', error);
             return false;

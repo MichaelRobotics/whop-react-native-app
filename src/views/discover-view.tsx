@@ -1,5 +1,5 @@
 import type { DiscoverViewProps } from "@whop/react-native";
-import ChatInterface from "../components/ChatInterface";
+import ChatInterfaceWeb from "../components/ChatInterfaceWeb";
 
 export function DiscoverView(props: DiscoverViewProps) {
 	// Extract user information from props
@@ -7,7 +7,7 @@ export function DiscoverView(props: DiscoverViewProps) {
 	const username = props.currentUserId || 'User';
 
 	return (
-		<ChatInterface
+		<ChatInterfaceWeb
 			userId={userId}
 			username={username}
 		/>

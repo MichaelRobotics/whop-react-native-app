@@ -1,33 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    FlatList,
-    StyleSheet,
-    Animated,
-    Linking,
+import { 
+    View, 
+    Text, 
+    TextInput, 
+    TouchableOpacity, 
+    FlatList, 
+    StyleSheet, 
+    Animated, 
+    Dimensions, 
+    KeyboardAvoidingView, 
+    Platform,
     Alert,
-    KeyboardAvoidingView,
-    Platform
+    ActivityIndicator,
+    Linking
 } from 'react-native';
-import { useWhopSdk } from '@whop/react-native';
+
+const { width, height } = Dimensions.get('window');
 
 const ChatInterface = ({ userId, username = 'User' }) => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
+    const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [showChoiceButtons, setShowChoiceButtons] = useState(false);
-    const [rocketAnim] = useState(new Animated.Value(0));
-    const [choiceContainerAnim] = useState(new Animated.Value(0));
-    const [goldShimmerAnim] = useState(new Animated.Value(0));
+    
+    // Animation values
+    const slideAnim = new Animated.Value(-width);
+    const fadeAnim = new Animated.Value(0);
+    const scaleAnim = new Animated.Value(0.8);
+    const rocketAnim = new Animated.Value(0);
+    const choiceContainerAnim = new Animated.Value(0);
+    const goldShimmerAnim = new Animated.Value(0);
     
     const flatListRef = useRef(null);
-    const inputRef = useRef(null);
-
-    // Get Whop SDK instance
-    const whopSdk = useWhopSdk();
+    const wsRef = useRef(null);
+    const reconnectTimeoutRef = useRef(null);
 
     useEffect(() => {
         if (!userId) return;
@@ -35,9 +42,38 @@ const ChatInterface = ({ userId, username = 'User' }) => {
         // Initialize chat with welcome message
         initializeChat();
         
-        // Start gold shimmer animation for links
+        // Connect to WebSocket
+        connectWebSocket();
+        
+        // Start gold shimmer animation
         startGoldShimmer();
+        
+        return () => {
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
+        };
     }, [userId]);
+
+    const startGoldShimmer = () => {
+        Animated.loop(
+            Animated.sequence([
+                Animated.timing(goldShimmerAnim, {
+                    toValue: 1,
+                    duration: 2000,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(goldShimmerAnim, {
+                    toValue: 0,
+                    duration: 2000,
+                    useNativeDriver: false,
+                })
+            ])
+        ).start();
+    };
 
     const initializeChat = () => {
         const welcomeMessage = {
@@ -55,21 +91,30 @@ Ready to level up? Choose your path below! 🚀`,
         setIsLoading(false);
     };
 
-    const startGoldShimmer = () => {
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(goldShimmerAnim, {
-                    toValue: 1,
-                    duration: 1500,
-                    useNativeDriver: false,
-                }),
-                Animated.timing(goldShimmerAnim, {
-                    toValue: 0,
-                    duration: 1500,
-                    useNativeDriver: false,
-                })
-            ])
-        ).start();
+    const connectWebSocket = () => {
+        try {
+            console.log('🔌 Connecting to Whop WebSocket...');
+            setIsConnected(true);
+            
+        } catch (error) {
+            console.error('❌ WebSocket connection failed:', error);
+            setIsConnected(false);
+            
+            // Attempt to reconnect
+            reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
+        }
+    };
+
+    const handleWebSocketMessage = (message) => {
+        try {
+            console.log('📨 WebSocket message received:', message);
+            
+            if (message.type === 'interactive_buttons') {
+                // Handle any future WebSocket messages here
+            }
+        } catch (error) {
+            console.error('❌ Error handling WebSocket message:', error);
+        }
     };
 
     const sendMessage = async () => {
@@ -90,20 +135,6 @@ Ready to level up? Choose your path below! 🚀`,
         setTimeout(() => {
             flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
-
-        // Send message via Whop SDK if available
-        if (whopSdk) {
-            try {
-                await whopSdk.sendMessage({
-                    content: inputText,
-                    userId: userId,
-                    type: 'direct_message'
-                });
-                console.log('✅ Message sent via Whop SDK');
-            } catch (error) {
-                console.error('❌ Error sending message via Whop SDK:', error);
-            }
-        }
 
         // Simulate response based on message content
         setTimeout(() => {
@@ -239,12 +270,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
     const sendChoiceToServer = async (button) => {
         try {
-            // Use Vercel API endpoint
-            const apiUrl = process.env.NODE_ENV === 'production' 
-                ? 'https://whop-react-native-app.vercel.app/api/button-response'
-                : 'http://localhost:3000/api/button-response';
-
-            const response = await fetch(apiUrl, {
+            const response = await fetch('/api/button-response', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -276,7 +302,6 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                 Alert.alert('Error', 'Cannot open this link');
             }
         } catch (error) {
-            console.error('❌ Error opening link:', error);
             Alert.alert('Error', 'Failed to open link');
         }
     };
@@ -288,46 +313,33 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         
         return parts.map((part, index) => {
             if (urlRegex.test(part)) {
-                const shimmerInterpolation = goldShimmerAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [
-                        'rgba(255, 215, 0, 0.6)',
-                        'rgba(255, 215, 0, 1)'
-                    ]
-                });
-
-                const bgInterpolation = goldShimmerAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [
-                        'rgba(255, 215, 0, 0.1)',
-                        'rgba(255, 215, 0, 0.2)'
-                    ]
-                });
-
-                const shadowInterpolation = goldShimmerAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0.3, 0.6]
-                });
-
                 return (
-                    <Animated.View
+                    <TouchableOpacity
                         key={index}
-                        style={[
+                        style={styles.goldLinkButton}
+                        onPress={() => handleLinkPress(part)}
+                        activeOpacity={0.8}
+                    >
+                        <Animated.View style={[
                             styles.goldLinkContainer,
                             {
-                                borderColor: shimmerInterpolation,
-                                backgroundColor: bgInterpolation,
-                                shadowOpacity: shadowInterpolation,
+                                borderColor: goldShimmerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['rgba(255, 215, 0, 0.6)', 'rgba(255, 215, 0, 1)']
+                                }),
+                                backgroundColor: goldShimmerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['rgba(255, 215, 0, 0.1)', 'rgba(255, 215, 0, 0.2)']
+                                }),
+                                shadowOpacity: goldShimmerAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0.3, 0.6]
+                                })
                             }
-                        ]}
-                    >
-                        <TouchableOpacity
-                            style={styles.goldLinkButton}
-                            onPress={() => handleLinkPress(part)}
-                        >
+                        ]}>
                             <Text style={styles.goldLinkText}>{part}</Text>
-                        </TouchableOpacity>
-                    </Animated.View>
+                        </Animated.View>
+                    </TouchableOpacity>
                 );
             } else {
                 return (
@@ -339,29 +351,31 @@ Use code: CRYPTO2024 for 25% off! 🚀`
         });
     };
 
-    const renderMessage = ({ item: message }) => {
-        const isSent = message.type === 'sent';
-        
-        return (
+    const renderMessage = ({ item }) => (
+        <View style={[
+            styles.messageContainer,
+            item.type === 'sent' ? styles.sentMessage : styles.receivedMessage
+        ]}>
             <View style={[
-                styles.messageContainer,
-                isSent ? styles.sentMessage : styles.receivedMessage
+                styles.messageBubble,
+                item.type === 'sent' ? styles.sentBubble : styles.receivedBubble
             ]}>
-                <View style={[
-                    styles.messageBubble,
-                    isSent ? styles.sentBubble : styles.receivedBubble
-                ]}>
-                    <View style={styles.messageContent}>
-                        {renderMessageContent(message.content)}
-                    </View>
-                    <Text style={styles.timestamp}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                    
-                    {/* Welcome message buttons */}
-                    {message.hasButtons && (
-                        <View style={styles.welcomeButtonsContainer}>
-                            <Animated.Text
+                <View style={styles.messageContent}>
+                    {renderMessageContent(item.content)}
+                </View>
+                <Text style={styles.timestamp}>
+                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                
+                {/* Welcome message buttons */}
+                {item.hasButtons && (
+                    <View style={styles.welcomeButtonsContainer}>
+                        <TouchableOpacity
+                            style={styles.welcomeButton}
+                            onPress={handleWelcomeButtonPress}
+                            activeOpacity={0.8}
+                        >
+                            <Animated.Text 
                                 style={[
                                     styles.welcomeButtonText,
                                     {
@@ -374,23 +388,19 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                                     }
                                 ]}
                             >
-                                <TouchableOpacity
-                                    style={styles.welcomeButton}
-                                    onPress={handleWelcomeButtonPress}
-                                >
-                                    🚀 Get Started
-                                </TouchableOpacity>
+                                🚀 Get Started
                             </Animated.Text>
-                        </View>
-                    )}
-                </View>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
-        );
-    };
+        </View>
+    );
 
     if (isLoading) {
         return (
             <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#667eea" />
                 <Text style={styles.loadingText}>Loading chat...</Text>
             </View>
         );
@@ -398,18 +408,28 @@ Use code: CRYPTO2024 for 25% off! 🚀`
 
     return (
         <KeyboardAvoidingView 
-            style={styles.container}
+            style={styles.container} 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.headerInfo}>
+                    <Text style={styles.headerTitle}>Whop Owner</Text>
+                    <Text style={styles.headerSubtitle}>
+                        {isConnected ? '🟢 Online' : '🔴 Offline'}
+                    </Text>
+                </View>
+            </View>
+
             {/* Messages */}
             <FlatList
                 ref={flatListRef}
                 data={messages}
                 renderItem={renderMessage}
-                keyExtractor={(item) => item.id}
+                keyExtractor={item => item.id}
                 style={styles.messagesList}
+                contentContainerStyle={styles.messagesContent}
                 showsVerticalScrollIndicator={false}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
             {/* Choice Buttons Container - Separate from messages */}
@@ -432,6 +452,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                         <TouchableOpacity
                             style={[styles.choiceButton, { borderColor: '#667eea' }]}
                             onPress={() => handleChoiceButtonPress({ id: 'dropshipping' })}
+                            activeOpacity={0.8}
                         >
                             <Text style={styles.choiceButtonIcon}>🛍️</Text>
                             <View style={styles.choiceButtonContent}>
@@ -443,6 +464,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                         <TouchableOpacity
                             style={[styles.choiceButton, { borderColor: '#764ba2' }]}
                             onPress={() => handleChoiceButtonPress({ id: 'sports' })}
+                            activeOpacity={0.8}
                         >
                             <Text style={styles.choiceButtonIcon}>🏆</Text>
                             <View style={styles.choiceButtonContent}>
@@ -454,6 +476,7 @@ Use code: CRYPTO2024 for 25% off! 🚀`
                         <TouchableOpacity
                             style={[styles.choiceButton, { borderColor: '#f093fb' }]}
                             onPress={() => handleChoiceButtonPress({ id: 'crypto' })}
+                            activeOpacity={0.8}
                         >
                             <Text style={styles.choiceButtonIcon}>💰</Text>
                             <View style={styles.choiceButtonContent}>
@@ -468,14 +491,13 @@ Use code: CRYPTO2024 for 25% off! 🚀`
             {/* Input */}
             <View style={styles.inputContainer}>
                 <TextInput
-                    ref={inputRef}
                     style={styles.textInput}
                     value={inputText}
                     onChangeText={setInputText}
                     placeholder="Type a message..."
+                    placeholderTextColor="#999"
                     multiline
                     maxLength={1000}
-                    onSubmitEditing={sendMessage}
                 />
                 <TouchableOpacity 
                     style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
@@ -498,14 +520,41 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#f8f9fa',
     },
     loadingText: {
+        marginTop: 10,
         fontSize: 16,
         color: '#666',
     },
+    header: {
+        backgroundColor: 'white',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e9ecef',
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    headerInfo: {
+        flex: 1,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+    },
+    headerSubtitle: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 2,
+    },
     messagesList: {
         flex: 1,
-        padding: 15,
+    },
+    messagesContent: {
+        paddingHorizontal: 15,
+        paddingVertical: 10,
     },
     messageContainer: {
         marginVertical: 5,
@@ -519,56 +568,76 @@ const styles = StyleSheet.create({
     },
     messageBubble: {
         maxWidth: '80%',
-        padding: 12,
-        borderRadius: 18,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 20,
     },
     sentBubble: {
-        backgroundColor: 'rgba(102, 126, 234, 0.9)',
-        borderBottomRightRadius: 4,
+        backgroundColor: 'rgba(102, 126, 234, 0.9)', // More transparent
+        borderBottomRightRadius: 5,
     },
     receivedBubble: {
         backgroundColor: 'white',
-        borderBottomLeftRadius: 4,
+        borderBottomLeftRadius: 5,
+        borderWidth: 1,
+        borderColor: '#e9ecef',
     },
     messageContent: {
-        marginBottom: 4,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'flex-start',
     },
     messageText: {
         fontSize: 16,
-        color: '#1a1a1a',
         lineHeight: 22,
+        color: '#1a1a1a',
+    },
+    goldLinkButton: {
+        marginVertical: 2,
+        marginHorizontal: 1,
+    },
+    goldLinkContainer: {
+        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 215, 0, 0.6)',
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        shadowColor: '#ffd700',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    goldLinkText: {
+        fontSize: 14,
+        color: '#1a1a1a',
+        textDecorationLine: 'underline',
+        fontWeight: '500',
     },
     timestamp: {
         fontSize: 12,
         color: '#999',
+        marginTop: 5,
         alignSelf: 'flex-end',
-        marginTop: 2,
     },
     welcomeButtonsContainer: {
-        marginTop: 10,
+        marginTop: 15,
         alignItems: 'center',
     },
     welcomeButton: {
         backgroundColor: '#667eea',
         paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
+        paddingVertical: 12,
+        borderRadius: 25,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 4,
         },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
     },
     welcomeButtonText: {
         color: 'white',
@@ -578,42 +647,45 @@ const styles = StyleSheet.create({
     choiceButtonsOverlay: {
         position: 'absolute',
         bottom: 80,
-        left: 15,
-        right: 15,
+        left: 20,
+        right: 20,
+        zIndex: 1000,
+    },
+    choiceButtonsContainer: {
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: 16,
-        padding: 15,
+        borderRadius: 20,
+        padding: 20,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: 8,
         },
         shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowRadius: 24,
         elevation: 8,
-    },
-    choiceButtonsContainer: {
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
         gap: 12,
     },
     choiceButton: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 16,
         backgroundColor: 'white',
         borderWidth: 2,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 3,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
         elevation: 3,
-        minHeight: 70,
+        minHeight: 60,
     },
     choiceButtonIcon: {
-        fontSize: 24,
+        fontSize: 22,
         marginRight: 12,
     },
     choiceButtonContent: {
@@ -621,39 +693,41 @@ const styles = StyleSheet.create({
     },
     choiceButtonText: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
         color: '#1a1a1a',
-        marginBottom: 4,
+        marginBottom: 3,
     },
     choiceButtonDescription: {
         fontSize: 14,
         color: '#666',
-        lineHeight: 18,
+        lineHeight: 16,
     },
     inputContainer: {
         flexDirection: 'row',
-        padding: 15,
+        alignItems: 'flex-end',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: '#e9ecef',
-        alignItems: 'flex-end',
     },
     textInput: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#e9ecef',
+        backgroundColor: '#f8f9fa',
         borderRadius: 20,
         paddingHorizontal: 15,
         paddingVertical: 10,
         marginRight: 10,
-        maxHeight: 100,
         fontSize: 16,
+        maxHeight: 100,
+        borderWidth: 1,
+        borderColor: '#e9ecef',
     },
     sendButton: {
         backgroundColor: '#667eea',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
         borderRadius: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -664,28 +738,6 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: '600',
-    },
-    goldLinkContainer: {
-        marginVertical: 4,
-        borderRadius: 8,
-        borderWidth: 2,
-        shadowColor: '#FFD700',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    goldLinkButton: {
-        padding: 8,
-        borderRadius: 6,
-    },
-    goldLinkText: {
-        fontSize: 14,
-        color: '#1a1a1a',
-        textDecorationLine: 'underline',
-        fontWeight: '500',
     },
 });
 

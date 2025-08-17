@@ -1,5 +1,5 @@
 import type { ExperienceViewProps } from "@whop/react-native";
-import ChatInterface from "../components/ChatInterface";
+import ChatInterfaceWeb from "../components/ChatInterfaceWeb";
 
 export function ExperienceView(props: ExperienceViewProps) {
 	// Extract user information from props
@@ -7,7 +7,7 @@ export function ExperienceView(props: ExperienceViewProps) {
 	const username = props.currentUserId || 'User';
 
 	return (
-		<ChatInterface
+		<ChatInterfaceWeb
 			userId={userId}
 			username={username}
 		/>
